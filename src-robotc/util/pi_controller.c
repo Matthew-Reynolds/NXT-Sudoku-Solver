@@ -1,15 +1,12 @@
 #include "pi_controller.h"
 
-void initializeController(PIController & controller, float newKP, float newKI, float & newSource){
+void initializeController(PIController & controller, float newKP, float newKI, InputType type, int inPort, int outPort){
 	setTunings(controller, newKP, newKI);
-	controller.sourcef = & newSource;
-	controller.sourceIsDiscreet = false;
-}
-
-void initializeController(PIController & controller, float newKP, float newKI, long * newSource){
-	setTunings(controller, newKP, newKI);
-	controller.sourcel = newSource;
-	controller.sourceIsDiscreet = true;
+	controller.inputType = type;
+	controller.inputPort = inPort;
+	controller.outputPort = outPort;
+	controller.tolerance = 2;
+	controller.isContinuous = false;
 }
 
 
@@ -33,7 +30,18 @@ void setInputRange(PIController & controller, float newMin, float newMax) {
 	// return
 	controller.minimumInput = newMin;
 	controller.minimumOutput = newMax;
-	setSetpoint(controller, controller.setpoint);
+	controller.scale = 1;
+	setSetpoint(controller, getInput(controller)*1);
+}
+
+void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor) {
+	if (newMin > newMax)
+		return; // If the lower boundary is greater than the upper boundary,
+	// return
+	controller.minimumInput = newMin;
+	controller.minimumOutput = newMax;
+	controller.scale = scalingFactor;
+	setSetpoint(controller, getInput(controller)/scalingFactor);
 }
 
 void setDirection(PIController & controller, bool isForwards) {
@@ -48,6 +56,8 @@ void setDirection(PIController & controller, bool isForwards) {
 }
 
 void setSetpoint(PIController & controller, float newSetpoint) {
+
+	newSetpoint *= controller.scale;
 
 	// Make sure that the setPoint is within the input limits
 
@@ -83,10 +93,10 @@ void setSetpoint(PIController & controller, float newSetpoint) {
 }
 
 float getInput(PIController & controller){
-	if(controller.sourceIsDiscreet)
-		controller.inputVal = *controller.sourcel;
+	if(controller.inputType == MOTOR_ENCODER)
+		controller.inputVal = nMotorEncoder[controller.inputPort];
 	else
-		controller.inputVal = *controller.sourcef;
+		controller.inputVal = SensorValue[controller.inputPort];
 	return controller.inputVal;
 }
 
@@ -130,7 +140,6 @@ float getOutput(PIController & c) {
 	return output;
 }
 
-
 bool onTarget(PIController & controller) {
 	getInput(controller);
 
@@ -142,5 +151,9 @@ bool onTarget(PIController & controller) {
 
 
 	// If the setpoint is in the right spot
-	return (fabs(controller.setpoint - controller.inputVal) < controller.tolerance);
+	return (fabs(controller.setpoint - controller.inputVal) <= controller.tolerance);
+}
+
+void updateController(PIController & controller){
+	motor[controller.outputPort] = getOutput(controller);
 }

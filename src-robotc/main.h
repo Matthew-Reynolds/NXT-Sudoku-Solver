@@ -10,3 +10,12 @@
 #ifndef PI_CONTROLLER_H
 #include "util/pi_controller.c"
 #endif
+
+#ifndef MAIN_H
+
+enum RobotState{
+	RUNNING,
+	DISABLED
+};
+
+#endif
