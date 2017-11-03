@@ -34,11 +34,11 @@ task main()
 	while(state == RUNNING){
 
 		displayTextLine(0, "%.3f %.3f", getInput(controllers[0]), controllers[0].setpoint);
-		if(onTarget(controllers[0])
-			displayTextLine(1, "On target")
+		if(onTarget(controllers[0]))
+			displayTextLine(1, "On target");
 		else
 			displayTextLine(1, "Not on target");
-		displayTextLine(3, "%.2f", getOutput(controllers[0]);
+		displayTextLine(3, "%.2f", getOutput(controllers[0]));
 
 		if(nNxtButtonPressed == 1 && onTarget(controllers[0])){
 			setSetpoint(controllers[0], 100);
