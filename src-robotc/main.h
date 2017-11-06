@@ -11,11 +11,20 @@
 #include "util/pi_controller.c"
 #endif
 
+
 #ifndef MAIN_H
 
 enum RobotState{
 	RUNNING,
-	DISABLED
+	SENDING_BT,
+	RECEIVING_BT,
+	DISABLED,
+	SHUTDOWN
 };
+
+// Wrap the 2D array in a struct to allow passing by ref
+typedef struct{
+	int board[9][9];
+} Sudoku;
 
 #endif

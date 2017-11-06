@@ -13,7 +13,7 @@ enum InputType{
 
 typedef struct{
 	float lastTime;
-	float inputVal, output, setpoint;
+	float inputVal, outputVal, setpoint;
 	float integralTerm;
 	float kP, kI;
 	float minimumOutput, maximumOutput;
@@ -26,6 +26,8 @@ typedef struct{
 	InputType inputType;
 	int inputPort;
 	int outputPort;
+
+	bool isEnabled;
 } PIController;
 
 void initializeController(PIController & controller, float newKP, float newKI, InputType type, int inPort, int outPort);
@@ -33,7 +35,7 @@ void initializeController(PIController & controller, float newKP, float newKI, I
 void setTunings(PIController & controller, float newKP, float newKI);
 void setOutputRange(PIController & controller, float newMin, float newMax);
 void setInputRange(PIController & controller, float newMin, float newMax);
-void setDirection(PIController & controller, bool isForwards);
+//void setDirection(PIController & controller, bool isForwards);
 void setSetpoint(PIController & controller, float newSetpoint);
 
 float getInput(PIController & controller);
@@ -41,6 +43,7 @@ float getOutput(PIController & c);
 bool onTarget(PIController & controller);
 
 void updateController(PIController & controller);
+
 #endif
 
 #ifndef MATH_H

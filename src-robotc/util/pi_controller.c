@@ -1,62 +1,84 @@
 #include "pi_controller.h"
 
+// Pls call me structs don't let us initialize their contents
 void initializeController(PIController & controller, float newKP, float newKI, InputType type, int inPort, int outPort){
+
+	// Initialize all the specified vars to their specified values
 	setTunings(controller, newKP, newKI);
 	controller.inputType = type;
 	controller.inputPort = inPort;
 	controller.outputPort = outPort;
+
+	// Initialize all of the remaining vars to default vals
+	controller.lastTime = time1[T4];
+	controller.inputVal = 0;
+	controller.outputVal = 0;
+	controller.setpoint = 0;
+	controller.integralTerm = 0;
 	controller.tolerance = 2;
+	setInputRange(controller, -1, 1);
+	setOutputRange(controller, -1, 1);
 	controller.isContinuous = false;
-}
-
-
-// Update P and I vals
-void setTunings(PIController & controller, float newKP, float newKI) {
-	controller.kP = fabs(newKP);
-	controller.kI = fabs(newKI);
-}
-
-void setOutputRange(PIController & controller, float newMin, float newMax) {
-	if (newMin > newMax)
-		return; // If the lower boundary is greater than the upper boundary,
-	// return
-	controller.minimumOutput = newMin;
-	controller.maximumOutput = newMax;
-}
-
-void setInputRange(PIController & controller, float newMin, float newMax) {
-	if (newMin > newMax)
-		return; // If the lower boundary is greater than the upper boundary,
-	// return
-	controller.minimumInput = newMin;
-	controller.minimumOutput = newMax;
 	controller.scale = 1;
-	setSetpoint(controller, getInput(controller)*1);
+	controller.isEnabled = false;
 }
 
-void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor) {
-	if (newMin > newMax)
-		return; // If the lower boundary is greater than the upper boundary,
-	// return
-	controller.minimumInput = newMin;
-	controller.minimumOutput = newMax;
-	controller.scale = scalingFactor;
-	setSetpoint(controller, getInput(controller)/scalingFactor);
+// Update P and I tunings
+void setTunings(PIController & controller, float newKP, float newKI) {
+	controller.kP = abs(newKP);
+	controller.kI = abs(newKI);
 }
 
-void setDirection(PIController & controller, bool isForwards) {
-	if (isForwards) {
-		controller.kP = fabs(controller.kP);
-		controller.kI = fabs(controller.kI);
+// Set the range of possible output values
+void setOutputRange(PIController & controller, float newMin, float newMax) {
+
+	// Check that the bounds are legal
+	if (newMin < newMax){
+		controller.minimumOutput = newMin;
+		controller.maximumOutput = newMax;
 	}
 	else {
-		controller.kP = -1.0 * fabs(controller.kP);
-		controller.kI = -1.0 * fabs(controller.kI);
+		controller.minimumOutput = 0;
+		controller.maximumOutput = 0;
 	}
 }
 
+// Set the range of the possible input values, with a default scaling factor of 1
+void setInputRange(PIController & controller, float newMin, float newMax) {
+
+	// Check that the bounds are legal
+	if (newMin < newMax){
+		controller.minimumInput = newMin;
+		controller.minimumOutput = newMax;
+		controller.scale = 1;
+		setSetpoint(controller, getInput(controller));
+	}
+	else {
+		controller.minimumInput = 0;
+		controller.maximumInput = 0;
+	}
+}
+
+// Set the range of the possible input values and the scaling factor
+void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor) {
+
+	// Check that the bounds are legal
+	if (newMin < newMax){
+		controller.minimumInput = newMin;
+		controller.minimumOutput = newMax;
+		controller.scale = scalingFactor;
+		setSetpoint(controller, getInput(controller)/scalingFactor);
+	}
+	else {
+		controller.minimumInput = 0;
+		controller.maximumInput = 0;
+	}
+}
+
+// Set the setpoint of the controller
 void setSetpoint(PIController & controller, float newSetpoint) {
 
+	// Scale the setpoint
 	newSetpoint *= controller.scale;
 
 	// Make sure that the setPoint is within the input limits
@@ -92,6 +114,7 @@ void setSetpoint(PIController & controller, float newSetpoint) {
 	}
 }
 
+// Updat the input value
 float getInput(PIController & controller){
 	if(controller.inputType == MOTOR_ENCODER)
 		controller.inputVal = nMotorEncoder[controller.inputPort];
@@ -100,6 +123,7 @@ float getInput(PIController & controller){
 	return controller.inputVal;
 }
 
+// Calculate the output value
 float getOutput(PIController & c) {
 	getInput(c);
 
@@ -114,7 +138,7 @@ float getOutput(PIController & c) {
 
 	// If the controller is cts
 	if (c.isContinuous) {
-		if (fabs(error) > (c.maximumInput - c.minimumInput) / 2) {
+		if (abs(error) > (c.maximumInput - c.minimumInput) / 2) {
 			if (error > 0) {
 				error = error - c.maximumInput + c.minimumInput;
 				} else {
@@ -140,20 +164,34 @@ float getOutput(PIController & c) {
 	return output;
 }
 
+// Determine whether or not the motor has reached is at the setpoint
 bool onTarget(PIController & controller) {
 	getInput(controller);
-
 
 	//		if (m_isContinuous)
 	//			return (Math.abs(m_setpoint - m_inputVal) < m_tolerance / 100
 	//					* Math.abs(m_maximumInput - m_minimumInput));
 	// return Math.abs(m_setpoint - m_inputVal) < m_tolerance;
 
-
 	// If the setpoint is in the right spot
-	return (fabs(controller.setpoint - controller.inputVal) <= controller.tolerance);
+	return (abs(controller.setpoint - controller.inputVal) <= controller.tolerance);
 }
 
+// Update the motor's power
 void updateController(PIController & controller){
 	motor[controller.outputPort] = getOutput(controller);
 }
+
+
+// =*=*=*=*= Currently not implemented =*=*=*=*=
+
+//void setDirection(PIController & controller, bool isForwards) {
+//	if (isForwards) {
+//		controller.kP = abs(controller.kP);
+//		controller.kI = abs(controller.kI);
+//	}
+//	else {
+//		controller.kP = -1.0 * abs(controller.kP);
+//		controller.kI = -1.0 * abs(controller.kI);
+//	}
+//}

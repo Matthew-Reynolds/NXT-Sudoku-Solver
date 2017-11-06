@@ -1,15 +1,7 @@
 #include "math.h"
 
-float fabs(float input){
-	if(input < 0)
-		input *= -1;
-	return input;
-}
-
-int abs(int input){
-	if(input < 0)
-		input *= -1;
-	return input;
+int nabs(int input){
+	return round(abs(input));
 }
 
 float fmod(float dividend, float divisor){
