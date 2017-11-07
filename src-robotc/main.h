@@ -15,6 +15,7 @@
 #ifndef MAIN_H
 
 enum RobotState{
+	HOMING,
 	RUNNING,
 	SENDING_BT,
 	RECEIVING_BT,

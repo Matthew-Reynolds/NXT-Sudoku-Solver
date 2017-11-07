@@ -4,29 +4,62 @@ const int NUM_CONTROLLERS = 2;
 PIController controllers[NUM_CONTROLLERS];
 RobotState state = DISABLED;
 
-// Populate the board with the following pattern for fun:
-// -------------------
-// |1 2 3|4 5 6|7 8 9|
-// |2 3 4|5 6 7|8 9 1|
-// |3 4 5|6 7 8|9 1 2|
-// -------------------
-// |4 5 6|7 8 9|1 2 3|
-// |5 6 7|8 9 1|2 3 4|
-// |6 7 8|9 1 2|3 4 5|
-// -------------------
-// |7 8 9|1 2 3|4 5 6|
-// |8 9 1|2 3 4|5 6 7|
-// |9 1 2|3 4 5|6 7 8|
-// -------------------
-void solvePuzzle(Sudoku & sudoku){
-	for(int i = 0; i < 9; i++){
-		for(int j = 0; j < 9; j++){
-			int val = ((j+1) + i);
-			if(val > 9)
-				val %= 9;
-			sudoku.board[i][j] = val;
-		}
+const tMotor yAxisMotor = motorA;
+const tMotor xAxisMotor = motorB;
+const tMotor zAxisMotor = motorC;
+
+const tSensors yAxisLim = S1;
+const tSensors xAxisLim = S2;
+const tSensors colorSensor = S3;
+const tSensors soundSensor = S4;
+
+void raisePen(){
+	long finalTime = time1[T1] + 1000;
+
+	motor[zAxisMotor] = 40;
+	while(time1[T1] < finalTime);
+
+	motor[zAxisMotor] = 0;
+}
+
+void lowerPen(){
+	long finalTime = time1[T1] + 1000;
+
+	motor[zAxisMotor] = -25;
+	while(time1[T1] < finalTime);
+
+	motor[zAxisMotor] = 0;
+}
+
+void homeAxis(){
+
+	RobotState lastState = state;
+
+	state = HOMING;
+
+	bool yAxisIsHome = false;
+	bool xAxisIsHome = false;
+
+	while(!yAxisIsHome && !xAxisIsHome){
+
+		if(!yAxisIsHome)
+			motor[yAxisMotor] = 10;
+		else
+			motor[yAxisMotor] = 0;
+
+	if(!xAxisIsHome)
+		motor[xAxisMotor] = 10;
+	else
+		motor[xAxisMotor] = 0;
+
+		yAxisIsHome = (bool) SensorValue(yAxisLim);
+		xAxisIsHome = (bool) SensorValue(xAxisLim);
 	}
+
+	nMotorEncoder[yAxisMotor] = 0;
+	nMotorEncoder[xAxisMotor] = 0;
+
+	state = lastState;
 }
 
 // Feed all the pid controllers
@@ -37,8 +70,8 @@ task pidUpdate(){
 
 		// Iterate through every controller, and feed it
 		for(int curController = 0; curController < NUM_CONTROLLERS; curController++)
-				if(controllers[curController].isEnabled)
-				updateController(controllers[curController]);
+			if(controllers[curController].isEnabled)
+			updateController(controllers[curController]);
 
 		// Delay for 5ms so that we don't pin the CPU
 		wait1Msec(5);
@@ -47,10 +80,8 @@ task pidUpdate(){
 
 task main()
 {
-
-	// Wrapping the 2D array in a structure called "Sudoku" allows us to pass the val by ref
-	Sudoku sudoku;
-	solvePuzzle(sudoku);
+	raisePen();
+	homeAxis();
 
 	// Initialize the PI controllers
 	initializeController(controllers[0], 0.5, 0.0000, MOTOR_ENCODER, motorA, motorA);
