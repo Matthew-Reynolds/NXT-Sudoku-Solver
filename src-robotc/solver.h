@@ -1,12 +1,17 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#ifndef MATH_H
 #include "util/math.c"
-#include "util/util.c"
+#endif
 
-struct Sudoku{
+#ifndef UTIL_H
+#include "util/util.c"
+#endif
+
+typedef struct{
 	short board[9][9];
-};
+} Sudoku;
 
 short getBoxNumber(short row, short col);
 short getBoxEntryCol(short box, short entry);

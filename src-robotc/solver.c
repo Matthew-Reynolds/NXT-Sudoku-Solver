@@ -39,7 +39,6 @@ short board3[9][9] =
 	0, 9, 0, 0, 0, 0, 4, 0, 0};
 
 
-
 short getBoxNumber(short row, short col){
 	return (short)(col/3) + 3*(row/3);
 }
@@ -113,10 +112,7 @@ bool checkSolved(const Sudoku & sudoku){
 	return isValid;
 }
 
-bool checkCol(short * potentialColVals,
-short * potentialRowVals,
-short * potentialBoxVals,
-Sudoku & sudoku){
+bool checkCol(short * potentialColVals, short * potentialRowVals, short * potentialBoxVals, Sudoku & sudoku){
 
 	bool madeChange = false;
 
@@ -158,10 +154,7 @@ Sudoku & sudoku){
 	return madeChange;
 }
 
-bool checkRow(short * potentialColVals,
-short * potentialRowVals,
-short * potentialBoxVals,
-Sudoku & sudoku){
+bool checkRow(short * potentialColVals, short * potentialRowVals, short * potentialBoxVals, Sudoku & sudoku){
 
 	bool madeChange = false;
 
@@ -203,10 +196,7 @@ Sudoku & sudoku){
 	return madeChange;
 }
 
-bool checkBox(short * potentialColVals,
-short * potentialRowVals,
-short * potentialBoxVals,
-Sudoku & sudoku){
+bool checkBox(short * potentialColVals, short * potentialRowVals, short * potentialBoxVals, Sudoku & sudoku){
 
 	bool madeChange = false;
 
@@ -250,10 +240,7 @@ Sudoku & sudoku){
 }
 
 
-bool reynoldsSolverInner(short * potentialColVals,
-short * potentialRowVals,
-short * potentialBoxVals,
-Sudoku & sudoku){
+bool reynoldsSolverInner(short * potentialColVals, short * potentialRowVals, short * potentialBoxVals, Sudoku & sudoku){
 
 	// Make a copy of the current board state so that we can revert if this recursion fails
 	short saveBoard[9][9];

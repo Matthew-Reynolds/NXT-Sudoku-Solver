@@ -1,7 +1,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "math.c"
+#ifndef MATH_H
+#include "util/math.c"
+#endif
 
 short decToBit(short dec);
 short bitToDec(short bit);
