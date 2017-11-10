@@ -1,7 +1,18 @@
 #include "solver.h"
 
+// Mailbox 1: Main->Solver [2]	{start}
+// Mailbox 2: Main->Solver [81]	{puzzle}
+// Mailbox 3: Solver->Main [2]	{done, solved}
+// Mailbox 4: Solver->Main [81] {puzzle}
+
+const TMailboxIDs bt_getData = mailbox1;
+const TMailboxIDs bt_getPuzzle = mailbox2;
+const TMailboxIDs bt_sendData = mailbox3;
+const TMailboxIDs bt_sendPuzzle = mailbox4;
+
+
 // Easy
-short board1[9][9] =
+ubyte board1[9][9] =
 {2, 0, 0, 0, 4, 0, 0, 3, 8,
 	0, 3, 0, 0, 0, 2, 0, 1, 9,
 	0, 9, 8, 3, 0, 1, 6, 2, 0,
@@ -14,7 +25,7 @@ short board1[9][9] =
 
 
 // Medium
-short board2[9][9] =
+ubyte board2[9][9] =
 {6, 0, 0, 0, 0, 7, 0, 0, 5,
 	0, 1, 0, 5, 0, 6, 0, 0, 0,
 	0, 0, 9, 0, 0, 0, 7, 1, 0,
@@ -27,7 +38,7 @@ short board2[9][9] =
 
 
 // Hard
-short board3[9][9] =
+ubyte board3[9][9] =
 {8, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 3, 6, 0, 0, 0, 0, 0,
 	0, 7, 0, 0, 9, 0, 2, 0, 0,
@@ -39,29 +50,29 @@ short board3[9][9] =
 	0, 9, 0, 0, 0, 0, 4, 0, 0};
 
 
-short getBoxNumber(short row, short col){
-	return (short)(col/3) + 3*(row/3);
+ubyte getBoxNumber(ubyte row, ubyte col){
+	return (ubyte)(col/3) + 3*(row/3);
 }
 
-short getBoxEntryCol(short box, short entry){
+ubyte getBoxEntryCol(ubyte box, ubyte entry){
 	return 3*(box%3) + (entry%3);
 }
 
-short getBoxEntryRow(short box, short entry){
+ubyte getBoxEntryRow(ubyte box, ubyte entry){
 	return 3*(box/3) + (entry/3);
 }
 
 bool checkValid(const Sudoku & sudoku){
 	bool isValid = true;
 
-	for(short major = 0; major < 9 && isValid; major++){
-		short rowInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short colInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short boxInstances[9] = {0,0,0,0,0,0,0,0,0};
+	for(ubyte major = 0; major < 9 && isValid; major++){
+		ubyte rowInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte colInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte boxInstances[9] = {0,0,0,0,0,0,0,0,0};
 
-		for(int minor = 0; minor < 9; minor++){
-			short val = 0;
-
+		// Iterate through every cell
+		for(ubyte minor = 0; minor < 9; minor++){
+			ubyte val = 0;
 			if(val = sudoku.board[major][minor])
 				rowInstances[val-1]++;
 			if(val = sudoku.board[minor][major])
@@ -69,10 +80,11 @@ bool checkValid(const Sudoku & sudoku){
 			if(val = sudoku.board[getBoxEntryRow(major, minor)]
 				[getBoxEntryCol(major, minor)])
 			boxInstances[val-1]++;
+
 		}
 
 		// Everything should not appear, or appear exactly once
-		for(int check = 0; check < 9 && isValid; check++){
+		for(ubyte check = 0; check < 9 && isValid; check++){
 			isValid &= (rowInstances[check] < 2);
 			isValid &= (colInstances[check] < 2);
 			isValid &= (boxInstances[check] < 2);
@@ -85,13 +97,13 @@ bool checkValid(const Sudoku & sudoku){
 bool checkSolved(const Sudoku & sudoku){
 	bool isValid = true;
 
-	for(short major = 0; major < 9 && isValid; major++){
-		short rowInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short colInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short boxInstances[9] = {0,0,0,0,0,0,0,0,0};
+	for(ubyte major = 0; major < 9 && isValid; major++){
+		ubyte rowInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte colInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte boxInstances[9] = {0,0,0,0,0,0,0,0,0};
 
-		for(int minor = 0; minor < 9; minor++){
-			short val = 0;
+		for(ubyte minor = 0; minor < 9; minor++){
+			ubyte val = 0;
 
 			if(val = sudoku.board[major][minor])
 				rowInstances[val-1]++;
@@ -102,13 +114,15 @@ bool checkSolved(const Sudoku & sudoku){
 			boxInstances[val-1]++;
 		}
 
+
 		// Everything should appear exactly once
-		for(int check = 0; check < 9 && isValid; check++){
+		for(ubyte check = 0; check < 9 && isValid; check++){
 			isValid &= (rowInstances[check] == 1);
 			isValid &= (colInstances[check] == 1);
 			isValid &= (boxInstances[check] == 1);
 		}
 	}
+
 	return isValid;
 }
 
@@ -117,19 +131,18 @@ bool checkCol(short * potentialColVals, short * potentialRowVals, short * potent
 	bool madeChange = false;
 
 	// Iterate through each col, one at a time
-	for(short col = 0; col < 9; col++){
-		short numInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short possibleRow[9] = {0,0,0,0,0,0,0,0,0};
+	for(ubyte col = 0; col < 9; col++){
+		ubyte numInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte possibleRow[9] = {0,0,0,0,0,0,0,0,0};
 
 		// Iterate through every number 1-9, and get how many spots this number can be placed in this column
-		for(short row = 0; row < 9; row++){
+		for(ubyte row = 0; row < 9; row++){
 			if(sudoku.board[row][col] < 1){
 				short newBit = potentialColVals[col] &
 				potentialRowVals[row] &
 				potentialBoxVals[getBoxNumber(row, col)];
 
-
-				for(short bit = 0; bit < 9; bit++){
+				for(ubyte bit = 0; bit < 9; bit++){
 					if(newBit & decToBit(bit+1)){
 						numInstances[bit] ++;
 						possibleRow[bit] = row;
@@ -139,7 +152,7 @@ bool checkCol(short * potentialColVals, short * potentialRowVals, short * potent
 		}
 
 		// Now that we've counted the possible locations, find all the values that have only one possible place
-		for(short curVal = 0; curVal < 9; curVal++){
+		for(ubyte curVal = 0; curVal < 9; curVal++){
 			if(numInstances[curVal] == 1){
 				madeChange = true;
 				sudoku.board[possibleRow[curVal]][col] = curVal+1;
@@ -159,19 +172,19 @@ bool checkRow(short * potentialColVals, short * potentialRowVals, short * potent
 	bool madeChange = false;
 
 	// Iterate through each row, one at a time
-	for(short row = 0; row < 9; row++){
+	for(ubyte row = 0; row < 9; row++){
 
-		short numInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short possibleCol[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte numInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte possibleCol[9] = {0,0,0,0,0,0,0,0,0};
 
 		// Iterate through every number 1-9, and get how many spots this number can be placed in this row
-		for(short col = 0; col < 9; col++){
+		for(ubyte col = 0; col < 9; col++){
 			if(sudoku.board[row][col] < 1){
 				short newBit = potentialColVals[col] &
 				potentialRowVals[row] &
 				potentialBoxVals[getBoxNumber(row, col)];
 
-				for(short bit = 0; bit < 9; bit++){
+				for(ubyte bit = 0; bit < 9; bit++){
 					if(newBit & decToBit(bit+1)){
 						numInstances[bit] ++;
 						possibleCol[bit] = col;
@@ -181,7 +194,7 @@ bool checkRow(short * potentialColVals, short * potentialRowVals, short * potent
 		}
 
 		// Now that we've counted the possible locations, find all the values that have only one possible place
-		for(short curVal = 0; curVal < 9; curVal++){
+		for(ubyte curVal = 0; curVal < 9; curVal++){
 			if(numInstances[curVal] == 1){
 				madeChange = true;
 				sudoku.board[row][possibleCol[curVal]] = curVal+1;
@@ -201,18 +214,18 @@ bool checkBox(short * potentialColVals, short * potentialRowVals, short * potent
 	bool madeChange = false;
 
 	// Iterate through each box, one at a time
-	for(short box = 0; box < 9; box++){
-		short numInstances[9] = {0,0,0,0,0,0,0,0,0};
-		short possibleEntry[9] = {0,0,0,0,0,0,0,0,0};
+	for(ubyte box = 0; box < 9; box++){
+		ubyte numInstances[9] = {0,0,0,0,0,0,0,0,0};
+		ubyte possibleEntry[9] = {0,0,0,0,0,0,0,0,0};
 
 		// Iterate through every entry 1-9, and get how many spots this number can be placed in this row
-		for(short entry = 0; entry < 9; entry++){
+		for(ubyte entry = 0; entry < 9; entry++){
 			if(sudoku.board[getBoxEntryRow(box, entry)][getBoxEntryCol(box, entry)] < 1){
 				short newBit = potentialColVals[getBoxEntryCol(box, entry)] &
 				potentialRowVals[getBoxEntryRow(box, entry)] &
 				potentialBoxVals[box];
 
-				for(short bit = 0; bit < 9; bit++){
+				for(ubyte bit = 0; bit < 9; bit++){
 					if(newBit & decToBit(bit+1)){
 						numInstances[bit] ++;
 						possibleEntry[bit] = entry;
@@ -222,7 +235,7 @@ bool checkBox(short * potentialColVals, short * potentialRowVals, short * potent
 		}
 
 		// Now that we've counted the possible locations, find all the values that have only one possible place
-		for(short curVal = 0; curVal < 9; curVal++){
+		for(ubyte curVal = 0; curVal < 9; curVal++){
 			if(numInstances[curVal] == 1){
 				madeChange = true;
 				sudoku.board[getBoxEntryRow(box, possibleEntry[curVal])]
@@ -243,7 +256,7 @@ bool checkBox(short * potentialColVals, short * potentialRowVals, short * potent
 bool reynoldsSolverInner(short * potentialColVals, short * potentialRowVals, short * potentialBoxVals, Sudoku & sudoku){
 
 	// Make a copy of the current board state so that we can revert if this recursion fails
-	short saveBoard[9][9];
+	ubyte saveBoard[9][9];
 	short saveColVals[9];
 	short saveRowVals[9];
 	short saveBoxVals[9];
@@ -261,7 +274,6 @@ bool reynoldsSolverInner(short * potentialColVals, short * potentialRowVals, sho
 
 	} while(madeChange);
 
-
 	// Check if we've solved it
 	bool isSolved = checkSolved(sudoku);
 
@@ -270,8 +282,8 @@ bool reynoldsSolverInner(short * potentialColVals, short * potentialRowVals, sho
 
 	// Find the first empty cell
 	bool gotCell = false;
-	for(short row = 0; row < 9 && !isSolved && !gotCell; row++){
-		for(short col = 0; col < 9 && !isSolved && !gotCell; col++){
+	for(ubyte row = 0; row < 9 && !isSolved && !gotCell; row++){
+		for(ubyte col = 0; col < 9 && !isSolved && !gotCell; col++){
 			if(sudoku.board[row][col] == 0){
 				gotCell = true;
 
@@ -281,7 +293,7 @@ bool reynoldsSolverInner(short * potentialColVals, short * potentialRowVals, sho
 				potentialBoxVals[getBoxNumber(row, col)];
 
 				// For each potential val...
-				for(short curVal = 1; curVal <= 9 && !isSolved; curVal++){
+				for(ubyte curVal = 1; curVal <= 9 && !isSolved; curVal++){
 					if(decToBit(curVal) & potVals){
 
 						// Sub in the val and RECURSION
@@ -332,8 +344,8 @@ bool reynoldsSolver(Sudoku & sudoku){
 		0b111111111, 0b111111111, 0b111111111};
 
 	// Determine which vals are not used in each row, col, and box
-	for(short row = 0; row < 9; row++){
-		for(short col = 0; col < 9; col++){
+	for(ubyte row = 0; row < 9; row++){
+		for(ubyte col = 0; col < 9; col++){
 			short cellBit = decToBit(sudoku.board[row][col]);
 			potentialColVals[col] -= cellBit;
 			potentialRowVals[row] -= cellBit;

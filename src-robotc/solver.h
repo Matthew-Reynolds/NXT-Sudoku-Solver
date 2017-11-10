@@ -1,21 +1,17 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
-#ifndef MATH_H
-#include "util/math.c"
-#endif
-
 #ifndef UTIL_H
 #include "util/util.c"
 #endif
 
 typedef struct{
-	short board[9][9];
+	ubyte board[9][9];
 } Sudoku;
 
-short getBoxNumber(short row, short col);
-short getBoxEntryCol(short box, short entry);
-short getBoxEntryRow(short box, short entry);
+ubyte getBoxNumber(ubyte row, ubyte col);
+ubyte getBoxEntryCol(ubyte box, ubyte entry);
+ubyte getBoxEntryRow(ubyte box, ubyte entry);
 
 bool checkValid(const Sudoku & sudoku);
 bool checkSolved(const Sudoku & sudoku);
