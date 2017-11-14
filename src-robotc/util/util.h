@@ -1,15 +1,15 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-//#ifndef MATH_H
-//#include "util/math.c"
-//#endif
+#include "solver.h"
+#include "util/math.h"
 
-short decToBit(ubyte dec);
-//ubyte bitToDec(short bit);
+short decToBit(short dec);
+//short bitToDec(short bit);
 //bool isSingleBit(short bit);
 
-void copyArray(ubyte * source, ubyte * dest, short size);
+
+void copySudoku(const Sudoku & source, Sudoku & dest);
 void copyArray(short * source, short * dest, short size);
 
 #endif
