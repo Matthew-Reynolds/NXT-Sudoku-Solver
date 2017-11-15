@@ -4,61 +4,14 @@ const int NUM_CONTROLLERS = 2;
 PIController controllers[NUM_CONTROLLERS];
 RobotState state = DISABLED;
 
-const tMotor yAxisMotor = motorA;
-const tMotor xAxisMotor = motorB;
-const tMotor zAxisMotor = motorC;
-
-const tSensors yAxisLim = S1;
-const tSensors xAxisLim = S2;
-const tSensors colorSensor = S3;
-const tSensors soundSensor = S4;
-
-void raisePen(){
-	long finalTime = time1[T1] + 1000;
-
-	motor[zAxisMotor] = 40;
-	while(time1[T1] < finalTime);
-
-	motor[zAxisMotor] = 0;
-}
-
-void lowerPen(){
-	long finalTime = time1[T1] + 1000;
-
-	motor[zAxisMotor] = -25;
-	while(time1[T1] < finalTime);
-
-	motor[zAxisMotor] = 0;
-}
-
-void homeAxis(){
-
+task home(){
+	// Backup the current state, and set it to 'Homing'
 	RobotState lastState = state;
-
 	state = HOMING;
 
-	bool yAxisIsHome = false;
-	bool xAxisIsHome = false;
+	homeAxis();
 
-	while(!yAxisIsHome && !xAxisIsHome){
-
-		if(!yAxisIsHome)
-			motor[yAxisMotor] = 10;
-		else
-			motor[yAxisMotor] = 0;
-
-	if(!xAxisIsHome)
-		motor[xAxisMotor] = 10;
-	else
-		motor[xAxisMotor] = 0;
-
-		yAxisIsHome = (bool) SensorValue(yAxisLim);
-		xAxisIsHome = (bool) SensorValue(xAxisLim);
-	}
-
-	nMotorEncoder[yAxisMotor] = 0;
-	nMotorEncoder[xAxisMotor] = 0;
-
+	// Set the robot state back to the previous state
 	state = lastState;
 }
 
@@ -80,8 +33,20 @@ task pidUpdate(){
 
 task main()
 {
+	// Configure the sensors
+	SensorType[xAxisLim] = sensorTouch;
+	SensorType[yAxisLim] = sensorTouch;
+	SensorType[soundSensor] = sensorSoundDB;
+	SensorType[colorSensor] = sensorColorNxtFULL;
+
+
+
+	// =*=*=*=*=*=*=*=*= Startup =*=*=*=*=*=*=*=*=
+	state = STARTUP;
+
 	raisePen();
-	homeAxis();
+	startTask(home);
+	//TODO: Establish Bluetooth connection
 
 	// Initialize the PI controllers
 	initializeController(controllers[0], 0.5, 0.0000, MOTOR_ENCODER, motorA, motorA);
@@ -92,7 +57,12 @@ task main()
 	setInputRange(controllers[1], -32767, 32767, TICKS_PER_CM);
 	setOutputRange(controllers[1], -100, 100);
 
+	// Wait until the homing thread has completed
+	while(state == HOMING);
 
+
+
+	// =*=*=*=*=*=*=*=*= MAIN LOOP =*=*=*=*=*=*=*=*=
 	state = RUNNING;
 	startTask(pidUpdate);
 	controllers[0].isEnabled = true;
@@ -100,24 +70,8 @@ task main()
 
 	while(state == RUNNING){
 
-		displayTextLine(0, "%.3f %.3f", getInput(controllers[0]), controllers[0].setpoint);
-		if(onTarget(controllers[0]))
-			displayTextLine(1, "On target");
-		else
-			displayTextLine(1, "Not on target");
-		displayTextLine(3, "%.2f", controllers[0].outputVal);
 
-		if(nNxtButtonPressed == 1 && onTarget(controllers[0])){
-			setSetpoint(controllers[0], 100);
-			setSetpoint(controllers[1], 100);
-		}
-		else if(nNxtButtonPressed == 2 && onTarget(controllers[0])){
-			setSetpoint(controllers[0], -100);
-			setSetpoint(controllers[1], -100);
-		}
-		else if(nNxtButtonPressed == 3 && onTarget(controllers[0])){
-			setSetpoint(controllers[0], 0);
-			setSetpoint(controllers[1], 0);
-		}
+
+
 	}
 }

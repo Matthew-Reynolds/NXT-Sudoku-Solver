@@ -1,3 +1,27 @@
+#ifndef MAIN_H
+#define MAIN_H
+
+enum RobotState{
+	STARTUP,
+	HOMING,
+	RUNNING,
+	SENDING_BT,
+	RECEIVING_BT,
+	DISABLED,
+	SHUTDOWN
+};
+
+typedef short Sudoku[9][9];
+
+const tMotor yAxisMotor = motorA;
+const tMotor xAxisMotor = motorB;
+const tMotor zAxisMotor = motorC;
+
+const tSensors yAxisLim = S1;
+const tSensors xAxisLim = S2;
+const tSensors colorSensor = S3;
+const tSensors soundSensor = S4;
+
 // We get some funky business going on here.
 // Since we have no linker, sources are included rather than headers.
 // Each source has its own header where it and its dependencies are defined.
@@ -11,21 +35,8 @@
 #include "util/pi_controller.c"
 #endif
 
-
-#ifndef MAIN_H
-
-enum RobotState{
-	HOMING,
-	RUNNING,
-	SENDING_BT,
-	RECEIVING_BT,
-	DISABLED,
-	SHUTDOWN
-};
-
-// Wrap the 2D array in a struct to allow passing by ref
-typedef struct{
-	int board[9][9];
-} Sudoku;
+#ifndef MOVEMENT_H
+#include "movement.c"
+#endif
 
 #endif
