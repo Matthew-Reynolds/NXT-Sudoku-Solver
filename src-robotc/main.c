@@ -2,12 +2,12 @@
 
 const int NUM_CONTROLLERS = 2;
 PIController controllers[NUM_CONTROLLERS];
-RobotState state = DISABLED;
+RobotState state = STATE_DISABLED;
 
-task home(){
+task homeThread(){
 	// Backup the current state, and set it to 'Homing'
 	RobotState lastState = state;
-	state = HOMING;
+	state = STATE_HOMING;
 
 	homeAxis();
 
@@ -16,10 +16,10 @@ task home(){
 }
 
 // Feed all the pid controllers
-task pidUpdate(){
+task pidUpdateThread(){
 
-	// Continue updating the pid controllers until the robot enters its shutdown routine
-	while (state != SHUTDOWN){
+	// Continue updating the pid controllers while the robot is in the running state
+	while (state == STATE_RUNNING){
 
 		// Iterate through every controller, and feed it
 		for(int curController = 0; curController < NUM_CONTROLLERS; curController++)
@@ -42,10 +42,10 @@ task main()
 
 
 	// =*=*=*=*=*=*=*=*= Startup =*=*=*=*=*=*=*=*=
-	state = STARTUP;
+	state = STATE_STARTUP;
 
 	raisePen();
-	startTask(home);
+	startTask(homeThread);
 	//TODO: Establish Bluetooth connection
 
 	// Initialize the PI controllers
@@ -58,20 +58,32 @@ task main()
 	setOutputRange(controllers[1], -100, 100);
 
 	// Wait until the homing thread has completed
-	while(state == HOMING);
+	while(state == STATE_HOMING);
 
 
 
 	// =*=*=*=*=*=*=*=*= MAIN LOOP =*=*=*=*=*=*=*=*=
-	state = RUNNING;
-	startTask(pidUpdate);
+	state = STATE_RUNNING;
+	startTask(pidUpdateThread);
 	controllers[0].isEnabled = true;
 	controllers[1].isEnabled = true;
 
-	while(state == RUNNING){
+	while(state == STATE_RUNNING){
 
 
 
 
 	}
+
+
+
+	// =*=*=*=*=*=*=*=*= SHUTDOWN =*=*=*=*=*=*=*=*=
+	state = STATE_SHUTDOWN;
+	raisePen();
+	homeAxis();
+
+
+
+	// =*=*=*=*=*=*=*=*= DONE =*=*=*=*=*=*=*=*=
+	state = STATE_DISABLED;
 }
