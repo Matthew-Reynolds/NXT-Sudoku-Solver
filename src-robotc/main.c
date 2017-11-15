@@ -68,19 +68,56 @@ task main()
 	controllers[0].isEnabled = true;
 	controllers[1].isEnabled = true;
 
-	while(state == STATE_RUNNING){
+	Sudoku puzzle;
+	Sudoku solved;
+	bool puzzleIsSolved = false;
 
+	//TODO: Find the first cell. Center the color sensor in this cell
+	readPuzzle(puzzle);
 
+	// Send the puzzle over bluetooth
+	BT_Status status = BT_ERROR;
+	status = sendPuzzle(puzzle, -1);
+	while(status != BT_SUCCESS){
 
-
+		// Everytime there is an error, output the error message and make a sad sound
+		displayBigTextLine(2, "Send file: %s",  getErrorMessage(status));
+		playSound(soundException);
+		status = sendPuzzle(puzzle, -1);
+		eraseDisplay();
 	}
 
+
+	// Recieve the puzzle from bluetooth
+	status = receivePuzzle(puzzle, puzzleIsSolved, -1);
+	while(status != BT_SUCCESS){
+
+		// Everytime there is an error, output the error message and make a sad sound
+		displayBigTextLine(2, "Send file: %s",  getErrorMessage(status));
+		playSound(soundException);
+		status = receivePuzzle(puzzle, puzzleIsSolved, -1);
+		eraseDisplay();
+	}
+
+
+	// If the puzzle was solved, print it out.
+	if(puzzleIsSolved){
+
+		//TODO: Offset the head to center the pen in the cell rather than the color sensor
+		printPuzzle(puzzle, solved);
+	}
+
+	// Otherwise, make a sad noise and print out unsolveable
+	else {
+		displayBigTextLine(2, "Unable to solve puzzle :(");
+		playSound(soundException);
+	}
 
 
 	// =*=*=*=*=*=*=*=*= SHUTDOWN =*=*=*=*=*=*=*=*=
 	state = STATE_SHUTDOWN;
-	raisePen();
-	homeAxis();
+	raisePen(); // Make sure the pen is raised
+	homeAxis();	// Move the head off of the paper to see the result
 
 
 

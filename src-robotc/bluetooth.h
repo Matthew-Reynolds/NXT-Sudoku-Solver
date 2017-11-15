@@ -9,6 +9,8 @@ enum BT_Status {
 
 BT_Status establishConnection(long timeout);
 BT_Status sendPuzzle(const Sudoku & sudoku, long timeout);
-BT_Status receivePuzzle(Sudoku & sudoku, long timeout);
+BT_Status receivePuzzle(Sudoku & sudoku, bool & isSolved, long timeout);
+
+char * getErrorMessage(BT_Status error);
 
 #endif
