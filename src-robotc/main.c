@@ -46,6 +46,7 @@ task main()
 
 	raisePen();
 	startTask(homeThread);
+	nVolume = 4;
 	//TODO: Establish Bluetooth connection
 
 	// Initialize the PI controllers
