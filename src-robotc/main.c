@@ -40,6 +40,10 @@ task main()
 	SensorType[colorSensor] = sensorColorNxtFULL;
 
 
+	while(true){
+		displayCenteredBigTextLine(2, "Color: %d", getCellValue());
+	}
+
 
 	// =*=*=*=*=*=*=*=*= Startup =*=*=*=*=*=*=*=*=
 	state = STATE_STARTUP;

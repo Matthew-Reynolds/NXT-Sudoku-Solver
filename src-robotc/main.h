@@ -33,6 +33,10 @@ const tSensors soundSensor = S4;
 #include "util/pi_controller.c"
 #endif
 
+#ifndef COLOR_H
+#include "util/color.c"
+#endif
+
 #ifndef MOVEMENT_H
 #include "movement.c"
 #endif
