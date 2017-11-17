@@ -7,6 +7,4 @@ This system uses two NXT bricks to solve the puzzle. One brick operates a pen an
 Designed using the Lego Mindstorms NXT platform. Programmed in RobotC.
 
 # Authors:
-Matthew Reynolds
-Dawson Hemphill
-Andrew Drury
+Matthew Reynolds, Dawson Hemphill, Andrew Drury
