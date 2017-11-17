@@ -44,21 +44,27 @@ void readPuzzle(Sudoku & sudoku){
 void readRow(Sudoku & sudoku, int curLine){
 
 	// If the current row is odd, move to the left
-	if (curLine & 1)
-		for (int curColumn = 8; curColumn > -1; curColumn--) {
-		sudoku[curLine][curColumn] = getCellValue();
+	if (curLine & 1){
 
-		if (curColumn != 0)
-			moveToCell(curLine, curColumn - 1);
+		// Iterate through every column. Read the current cell.
+		// If this is not the last cell, move over 1 cell
+		for (int curColumn = 8; curColumn > -1; curColumn--){
+			sudoku[curLine][curColumn] = getCellValue();
+			if (curColumn != 0)
+				moveToCell(curLine, curColumn - 1);
+		}
 	}
 
 	// If the current row is even, move to the right
-	else
-		for (int curColumn = 0; curColumn < 9; curColumn++) {
-		sudoku[curLine][curColumn] = getCellValue();
+	else{
 
-		if (curColumn != 8)
-			moveToCell(curLine,curColumn + 1);
+		// Iterate through every column. Read the current cell.
+		// If this is not the last cell, move over 1 cell
+		for (int curColumn = 0; curColumn < 9; curColumn++){
+			sudoku[curLine][curColumn] = getCellValue();
+			if (curColumn != 8)
+				moveToCell(curLine,curColumn + 1);
+		}
 	}
 }
 
@@ -112,4 +118,7 @@ void findFirstCell(){
 }
 
 void moveToCell(int row, int col){
+	// Perhaps we need to take the offset from the origin here.
+	// This can either be a constant, or dynamically determined from findFirstCell()
+	// and passed around.
 }
