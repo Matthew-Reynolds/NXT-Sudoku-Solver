@@ -62,7 +62,7 @@ task main()
 		playSound(soundException);
 		wait1Msec(5000);
 		return;
-	} else {
+		} else {
 		playSound(soundFastUpwardTones);
 		wait1Msec(5000);
 	}
@@ -71,10 +71,10 @@ task main()
 	Sudoku puzzle;
 
 	while(true){
-	status = receivePuzzle(puzzle, isSolved, -1);
+		status = receivePuzzle(puzzle, isSolved, 5000);
 
-	//if(isSolved){
 		eraseDisplay();
+		if(status == BT_SUCCESS){
 			for(int line = 0; line < 9; line++){
 				displayTextLine(line, "|%d%d%d|%d%d%d|%d%d%d|", puzzle[line][0],
 				puzzle[line][1],
@@ -87,6 +87,9 @@ task main()
 				puzzle[line][8]);
 			}
 		}
+		else
+			displayTextLine(0, getStatusMessage(status));
+	}
 
 	// Initialize the PI controllers
 	initializeController(controllers[0], 0.5, 0.0000, MOTOR_ENCODER, motorA, motorA);

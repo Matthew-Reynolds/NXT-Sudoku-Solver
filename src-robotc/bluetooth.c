@@ -48,7 +48,7 @@ BT_Status establishConnection(long timeout){
 	//btStopSearch();
 
 
-	// Connect to "Solver" on port 1
+	// Connect to the other brick on port 1
 	// Repeat until we connect, or until we timeout
 	while(nBTCurrentStreamIndex < 0 && !didTimeout(timeout, startTime)){
 		btConnect(1, bt_peerName);
@@ -93,7 +93,7 @@ BT_Status sendPuzzle(const Sudoku & sudoku, bool isSolved){
 	for(int row = 0; row < 9; row++){
 
 		// Read the current row from the puzzle into aa buffer
-		for(int col = 0; col < 9; col++)
+		for(int col = 0; col < messageLength; col++)
 			puzzleRow[col] = sudoku[row][col];
 
 		// Write the message. Rows 0-4 to queue A, 5-8 to B. Wait until it is complete
@@ -154,7 +154,7 @@ BT_Status receivePuzzle(Sudoku & sudoku, bool & isSolved, long timeout){
 
 	// Read the puzzle one row at a time
 	ubyte receivePuzzle[messageLength];
-	for(int row = 0; row < messageLength; row++){
+	for(int row = 0; row < 9; row++){
 		if(row < 5)
 			status = cCmdMessageRead(receivePuzzle, messageLength, BTQueue_puzzleA);
 		else
@@ -173,7 +173,7 @@ BT_Status receivePuzzle(Sudoku & sudoku, bool & isSolved, long timeout){
 
 
 char * getStatusMessage(BT_Status status){
-	char * errorMessage = "aaaa";
+	char * errorMessage = "";
 
 	switch(status){
 	case BT_SUCCESS:
