@@ -40,18 +40,53 @@ task main()
 	SensorType[colorSensor] = sensorColorNxtFULL;
 
 
-	while(true){
-		displayCenteredBigTextLine(2, "Color: %d", getCellValue());
-	}
+	//while(true){
+	//	displayCenteredBigTextLine(2, "Color: %d", getCellValue());
+	//}
 
 
 	// =*=*=*=*=*=*=*=*= Startup =*=*=*=*=*=*=*=*=
 	state = STATE_STARTUP;
 
 	raisePen();
-	startTask(homeThread);
+	//startTask(homeThread);
 	nVolume = 4;
-	//TODO: Establish Bluetooth connection
+
+	// Establish a Bluetooth connection
+	displayCenteredTextLine(2, "Establishing BT");
+	displayCenteredTextLine(4, "Connection...");
+	setupBluetooth();
+	BT_Status status = establishConnection(-1);
+	displayCenteredTextLine(6, "%s", getStatusMessage(status));
+	if(status != BT_SUCCESS){
+		playSound(soundException);
+		wait1Msec(5000);
+		return;
+	} else {
+		playSound(soundFastUpwardTones);
+		wait1Msec(5000);
+	}
+
+	bool isSolved = false;
+	Sudoku puzzle;
+
+	while(true){
+	status = receivePuzzle(puzzle, isSolved, -1);
+
+	//if(isSolved){
+		eraseDisplay();
+			for(int line = 0; line < 9; line++){
+				displayTextLine(line, "|%d%d%d|%d%d%d|%d%d%d|", puzzle[line][0],
+				puzzle[line][1],
+				puzzle[line][2],
+				puzzle[line][3],
+				puzzle[line][4],
+				puzzle[line][5],
+				puzzle[line][6],
+				puzzle[line][7],
+				puzzle[line][8]);
+			}
+		}
 
 	// Initialize the PI controllers
 	initializeController(controllers[0], 0.5, 0.0000, MOTOR_ENCODER, motorA, motorA);
@@ -73,7 +108,7 @@ task main()
 	controllers[0].isEnabled = true;
 	controllers[1].isEnabled = true;
 
-	Sudoku puzzle;
+	//Sudoku puzzle;
 	Sudoku solved;
 	bool puzzleIsSolved = false;
 
@@ -81,14 +116,13 @@ task main()
 	readPuzzle(puzzle);
 
 	// Send the puzzle over bluetooth
-	BT_Status status = BT_ERROR;
-	status = sendPuzzle(puzzle, -1);
+	status = sendPuzzle(puzzle, false);
 	while(status != BT_SUCCESS){
 
 		// Everytime there is an error, output the error message and make a sad sound
-		displayBigTextLine(2, "Send file: %s",  getErrorMessage(status));
+		displayBigTextLine(2, "Send file: %s",  getStatusMessage(status));
 		playSound(soundException);
-		status = sendPuzzle(puzzle, -1);
+		status = sendPuzzle(puzzle, false);
 		eraseDisplay();
 	}
 
@@ -98,7 +132,7 @@ task main()
 	while(status != BT_SUCCESS){
 
 		// Everytime there is an error, output the error message and make a sad sound
-		displayBigTextLine(2, "Send file: %s",  getErrorMessage(status));
+		displayBigTextLine(2, "Send file: %s",  getStatusMessage(status));
 		playSound(soundException);
 		status = receivePuzzle(puzzle, puzzleIsSolved, -1);
 		eraseDisplay();

@@ -1,11 +1,17 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 
+#define BRICK_SOLVER
+
 // Typedef-ing Sudoku as a 2D array is slightly more efficient than wrapping it in a struct
 typedef short Sudoku[9][9];
 
 #ifndef UTIL_H
 #include "util/util.c"
+#endif
+
+#ifndef BLUETOOTH_H
+#include "bluetooth.c"
 #endif
 
 short getBoxNumber(short row, short col);

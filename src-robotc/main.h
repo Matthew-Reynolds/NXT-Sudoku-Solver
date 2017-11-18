@@ -1,6 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#define BRICK_PRIMARY
+
 enum RobotState{
 	STATE_STARTUP,
 	STATE_HOMING,

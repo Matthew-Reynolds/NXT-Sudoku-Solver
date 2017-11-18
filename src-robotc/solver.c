@@ -1,16 +1,5 @@
 #include "solver.h"
 
-// Mailbox 1: Main->Solver [2]	{start}
-// Mailbox 2: Main->Solver [81]	{puzzle}
-// Mailbox 3: Solver->Main [2]	{done, solved}
-// Mailbox 4: Solver->Main [81] {puzzle}
-
-const TMailboxIDs bt_getData = mailbox1;
-const TMailboxIDs bt_getPuzzle = mailbox2;
-const TMailboxIDs bt_sendData = mailbox3;
-const TMailboxIDs bt_sendPuzzle = mailbox4;
-
-
 // Easy
 Sudoku board1 =
 {2, 0, 0, 0, 4, 0, 0, 3, 8,
@@ -278,14 +267,14 @@ bool sudokuSolverInner(short * potentialColVals, short * potentialRowVals, short
 	// Note: Unrolled for performance increase. The RobotC compiler isn't the greatest at optimizing
 	//bool isSolved = checkSolved(sudoku);
 	bool isSolved = ((potentialColVals[0] |
-										potentialColVals[1] |
-										potentialColVals[2] |
-										potentialColVals[3] |
-										potentialColVals[4] |
-										potentialColVals[5] |
-										potentialColVals[6] |
-										potentialColVals[7] |
-										potentialColVals[8]) == 0);
+	potentialColVals[1] |
+	potentialColVals[2] |
+	potentialColVals[3] |
+	potentialColVals[4] |
+	potentialColVals[5] |
+	potentialColVals[6] |
+	potentialColVals[7] |
+	potentialColVals[8]) == 0);
 
 	// If logic can't get us any further and the puzzle still isn't solved, we
 	// need to try a little bit of trial-&-error / backtracking.
@@ -368,6 +357,7 @@ bool sudokuSolver(Sudoku & sudoku){
 task main()
 {
 	Sudoku sudoku;
+	setupBluetooth();
 
 	while(true){
 
@@ -392,8 +382,12 @@ task main()
 
 		time1[T1] = 0;
 
-		if(sudokuSolver(sudoku)){
+		sudokuSolver(sudoku);
+		BT_Status status = sendPuzzle(sudoku, true);
+		displayTextLine(0, getStatusMessage(status));
+		displayTextLine(7, "Elapsed: %d", time1[T1]);
 
+	/*	if(status == BT_SUCCESS){
 			for(int line = 0; line < 9; line++){
 				displayTextLine(line, "|%d%d%d|%d%d%d|%d%d%d|", sudoku[line][0],
 				sudoku[line][1],
@@ -405,9 +399,6 @@ task main()
 				sudoku[line][7],
 				sudoku[line][8]);
 			}
-		}
-		else
-			displayTextLine(0, "Error");
-		displayTextLine(7, "Elapsed: %d", time1[T1]);
+		}*/
 	}
 }
