@@ -1,44 +1,5 @@
 #include "solver.h"
 
-// Easy
-Sudoku board1 =
-{2, 0, 0, 0, 4, 0, 0, 3, 8,
-	0, 3, 0, 0, 0, 2, 0, 1, 9,
-	0, 9, 8, 3, 0, 1, 6, 2, 0,
-	0, 0, 3, 2, 0, 0, 1, 0, 0,
-	0, 5, 0, 0, 0, 0, 0, 6, 0,
-	0, 0, 6, 0, 0, 7, 2, 0, 0,
-	0, 7, 5, 4, 0, 3, 9, 8, 0,
-	1, 2, 0, 7, 0, 0, 0, 5, 0,
-	3, 8, 0, 0, 6, 0, 0, 0, 2};
-
-
-// Medium
-Sudoku board2 =
-{6, 0, 0, 0, 0, 7, 0, 0, 5,
-	0, 1, 0, 5, 0, 6, 0, 0, 0,
-	0, 0, 9, 0, 0, 0, 7, 1, 0,
-	0, 8, 0, 0, 0, 0, 3, 4, 2,
-	0, 0, 0, 6, 0, 3, 0, 0, 0,
-	1, 2, 3, 0, 0, 0, 0, 6, 0,
-	0, 7, 1, 0, 0, 0, 6, 0, 0,
-	0, 0, 0, 3, 0, 5, 0, 2, 0,
-	4, 0, 0, 1, 0, 0, 0, 0, 7};
-
-
-// Hard
-Sudoku board3 =
-{8, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 3, 6, 0, 0, 0, 0, 0,
-	0, 7, 0, 0, 9, 0, 2, 0, 0,
-	0, 5, 0, 0, 0, 7, 0, 0, 0,
-	0, 0, 0, 0, 4, 5, 7, 0, 0,
-	0, 0, 0, 1, 0, 0, 0, 3, 0,
-	0, 0, 1, 0, 0, 0, 0, 6, 8,
-	0, 0, 8, 5, 0, 0, 0, 1, 0,
-	0, 9, 0, 0, 0, 0, 4, 0, 0};
-
-
 short getBoxNumber(short row, short col){
 	return (short)(col/3) + 3*(row/3);
 }
@@ -359,46 +320,49 @@ task main()
 	Sudoku sudoku;
 	setupBluetooth();
 
+	displayCenteredTextLine(0, "Waiting for");
+	displayCenteredTextLine(1, "connection...");
+
+	// Wait until we are connected
+	while(nBTCurrentStreamIndex < 0);
+	eraseDisplay();
+	displayCenteredTextLine(0, "Connected!");
+
+	bool solved = false;
 	while(true){
 
-		// Wait until a button is pressed
-		while(nNxtButtonPressed == -1);
 
-		if(nNxtButtonPressed == 2){
-			eraseDisplay();
-			displayTextLine(0, "Solving Easy");
-			copySudoku(board1, sudoku);
-		}
-		else if(nNxtButtonPressed == 3){
-			eraseDisplay();
-			displayTextLine(0, "Solving Med");
-			copySudoku(board2, sudoku);
-		}
-		else if(nNxtButtonPressed == 1){
-			eraseDisplay();
-			displayTextLine(0, "Solving Hard");
-			copySudoku(board3, sudoku);
-		}
+		displayCenteredTextLine(6, "Waiting for");
+		displayCenteredTextLine(7, "next puzzle...");
 
-		time1[T1] = 0;
+		BT_Status status = receivePuzzle(sudoku, solved, -1);
+		eraseDisplay();
 
-		sudokuSolver(sudoku);
-		BT_Status status = sendPuzzle(sudoku, true);
-		displayTextLine(0, getStatusMessage(status));
-		displayTextLine(7, "Elapsed: %d", time1[T1]);
+		if(status == BT_SUCCESS){
+			displayCenteredTextLine(0, "Recieved puzzle!");
+			displayCenteredTextLine(2, "Solving...");
 
-	/*	if(status == BT_SUCCESS){
-			for(int line = 0; line < 9; line++){
-				displayTextLine(line, "|%d%d%d|%d%d%d|%d%d%d|", sudoku[line][0],
-				sudoku[line][1],
-				sudoku[line][2],
-				sudoku[line][3],
-				sudoku[line][4],
-				sudoku[line][5],
-				sudoku[line][6],
-				sudoku[line][7],
-				sudoku[line][8]);
+			time1[T1] = 0;
+			solved = sudokuSolver(sudoku);
+			displayCenteredTextLine(0, "Done (%ds)", time1[T1]/1000);
+			if(solved)
+				displayCenteredTextLine(2, "Solved. Sending...");
+			else
+				displayCenteredTextLine(2, "No sol. Sending...");
+			status = sendPuzzle(sudoku, solved);
+			if(status == BT_SUCCESS){
+				displayCenteredTextLine(0, "Sent solution!");
+				displayCenteredTextLine(2, "");
 			}
-		}*/
+			else{
+				displayCenteredTextLine(0, "Error sending");
+				displayCenteredTextLine(2, "solution:");
+				displayCenteredTextLine(4, getStatusMessage(status));
+			}
+		}
+		else{
+			displayCenteredTextLine(0, "Error receiving puzzle");
+			displayCenteredTextLine(2, getStatusMessage(status));
+		}
 	}
 }
