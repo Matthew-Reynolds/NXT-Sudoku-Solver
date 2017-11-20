@@ -18,6 +18,7 @@ void initializeController(PIController & controller, float newKP, float newKI, I
 	controller.tolerance = 2;
 	setInputRange(controller, -1, 1);
 	setOutputRange(controller, -1, 1);
+	controller.isReversed = false;
 	controller.isContinuous = false;
 	controller.scale = 1;
 	controller.isEnabled = false;
@@ -27,6 +28,10 @@ void initializeController(PIController & controller, float newKP, float newKI, I
 void setTunings(PIController & controller, float newKP, float newKI) {
 	controller.kP = abs(newKP);
 	controller.kI = abs(newKI);
+}
+
+void setTolerance(PIController & controller, float newTol) {
+	controller.tolerance = abs(newTol);
 }
 
 // Set the range of possible output values
@@ -43,29 +48,13 @@ void setOutputRange(PIController & controller, float newMin, float newMax) {
 	}
 }
 
-// Set the range of the possible input values, with a default scaling factor of 1
-void setInputRange(PIController & controller, float newMin, float newMax) {
-
-	// Check that the bounds are legal
-	if (newMin < newMax){
-		controller.minimumInput = newMin;
-		controller.minimumOutput = newMax;
-		controller.scale = 1;
-		setSetpoint(controller, getInput(controller));
-	}
-	else {
-		controller.minimumInput = 0;
-		controller.maximumInput = 0;
-	}
-}
-
 // Set the range of the possible input values and the scaling factor
 void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor) {
 
 	// Check that the bounds are legal
 	if (newMin < newMax){
 		controller.minimumInput = newMin;
-		controller.minimumOutput = newMax;
+		controller.maximumInput = newMax;
 		controller.scale = scalingFactor;
 		setSetpoint(controller, getInput(controller)/scalingFactor);
 	}
@@ -77,11 +66,14 @@ void setInputRange(PIController & controller, float newMin, float newMax, float 
 
 // Set the setpoint of the controller
 void setSetpoint(PIController & controller, float newSetpoint) {
+	controller.integralTerm = 0;
+
 
 	// Scale the setpoint
 	newSetpoint *= controller.scale;
 
 	// Make sure that the setPoint is within the input limits
+
 
 	// If the controller is continous...
 	if (controller.isContinuous) {
@@ -103,6 +95,7 @@ void setSetpoint(PIController & controller, float newSetpoint) {
 		}
 	}
 
+
 	// If the function is not continuous...
 	else {
 		if(newSetpoint > controller.maximumInput)
@@ -114,12 +107,21 @@ void setSetpoint(PIController & controller, float newSetpoint) {
 	}
 }
 
-// Updat the input value
+// Update the input value
+float getScaledInput(PIController & controller){
+	return getInput(controller)/controller.scale;
+}
+
+// Update the input value
 float getInput(PIController & controller){
 	if(controller.inputType == MOTOR_ENCODER)
 		controller.inputVal = nMotorEncoder[controller.inputPort];
 	else
 		controller.inputVal = SensorValue[controller.inputPort];
+
+	if(controller.isReversed)
+		controller.inputVal *= -1;
+
 	return controller.inputVal;
 }
 
@@ -134,10 +136,9 @@ float getOutput(PIController & c) {
 
 	// Compute all the working error variables
 	float error = c.setpoint - c.inputVal;
-	c.integralTerm += c.kI * (error * timeChange);
 
 	// If the controller is cts
-	if (c.isContinuous) {
+	/*if (c.isContinuous) {
 		if (abs(error) > (c.maximumInput - c.minimumInput) / 2) {
 			if (error > 0) {
 				error = error - c.maximumInput + c.minimumInput;
@@ -145,7 +146,12 @@ float getOutput(PIController & c) {
 				error = error + c.maximumInput - c.minimumInput;
 			}
 		}
-	}
+	}*/
+
+	// Only add to the integral term as we get close to the setpoint
+	if(c.kP * error < c.maximumOutput/6 && c.kP * error > c.minimumOutput/6)
+		c.integralTerm += c.kI * error * timeChange;
+
 
 	// Limit the integral, to prevent huge buildup after we exceed the
 	// maximum output
@@ -155,11 +161,15 @@ float getOutput(PIController & c) {
 		c.integralTerm = c.minimumOutput;
 
 	// Compute the output, limiting it to the boundaries
+
 	float output = (c.kP * error) + c.integralTerm;
 	if (output > c.maximumOutput)
 		output = c.maximumOutput;
 	else if (output < c.minimumOutput)
 		output = c.minimumOutput;
+
+	if(c.isReversed)
+		output *= -1;
 
 	return output;
 }
@@ -168,13 +178,19 @@ float getOutput(PIController & c) {
 bool onTarget(PIController & controller) {
 	getInput(controller);
 
+	if((abs(controller.setpoint - controller.inputVal) <= controller.tolerance))
+		controller.onTargetCount++;
+	else
+		controller.onTargetCount = 0;
+
+
 	//		if (m_isContinuous)
 	//			return (Math.abs(m_setpoint - m_inputVal) < m_tolerance / 100
 	//					* Math.abs(m_maximumInput - m_minimumInput));
 	// return Math.abs(m_setpoint - m_inputVal) < m_tolerance;
 
 	// If the setpoint is in the right spot
-	return (abs(controller.setpoint - controller.inputVal) <= controller.tolerance);
+	return controller.onTargetCount > 100;
 }
 
 // Update the motor's power
@@ -182,16 +198,6 @@ void updateController(PIController & controller){
 	motor[controller.outputPort] = getOutput(controller);
 }
 
-
-// =*=*=*=*= Currently not implemented =*=*=*=*=
-
-//void setDirection(PIController & controller, bool isForwards) {
-//	if (isForwards) {
-//		controller.kP = abs(controller.kP);
-//		controller.kI = abs(controller.kI);
-//	}
-//	else {
-//		controller.kP = -1.0 * abs(controller.kP);
-//		controller.kI = -1.0 * abs(controller.kI);
-//	}
-//}
+void setReversed(PIController & controller, bool reverse) {
+	controller.isReversed = reverse;
+}

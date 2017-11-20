@@ -1,9 +1,6 @@
 #ifndef PI_CONTROLLER_H
 #define PI_CONTROLLER_H
 
-// CHANGE ME
-const float TICKS_PER_CM = 360/(2*PI*2.75);
-
 enum InputType{
 	MOTOR_ENCODER,
 	ULTRASONIC,
@@ -20,12 +17,14 @@ typedef struct{
 	float minimumInput, maximumInput;
 	float scale;
 
+	bool isReversed;
 	bool isContinuous;
 	float tolerance;
 
 	InputType inputType;
 	int inputPort;
 	int outputPort;
+	int onTargetCount;
 
 	bool isEnabled;
 } PIController;
@@ -33,9 +32,10 @@ typedef struct{
 void initializeController(PIController & controller, float newKP, float newKI, InputType type, int inPort, int outPort);
 
 void setTunings(PIController & controller, float newKP, float newKI);
+void setTolerance(PIController & controller, float newTol);
 void setOutputRange(PIController & controller, float newMin, float newMax);
-void setInputRange(PIController & controller, float newMin, float newMax);
-//void setDirection(PIController & controller, bool isForwards);
+void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor = 1);
+void setReversed(PIController & controller, bool reverse);
 void setSetpoint(PIController & controller, float newSetpoint);
 
 float getInput(PIController & controller);
@@ -43,6 +43,10 @@ float getOutput(PIController & c);
 bool onTarget(PIController & controller);
 
 void updateController(PIController & controller);
+
+
+const int NUM_CONTROLLERS = 2;
+PIController controllers[NUM_CONTROLLERS];
 
 #endif
 

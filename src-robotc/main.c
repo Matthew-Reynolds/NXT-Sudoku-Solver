@@ -1,7 +1,5 @@
 #include "main.h"
 
-const int NUM_CONTROLLERS = 2;
-PIController controllers[NUM_CONTROLLERS];
 RobotState state = STATE_DISABLED;
 
 task homeThread(){
@@ -40,65 +38,43 @@ task main()
 	SensorType[colorSensor] = sensorColorNxtFULL;
 
 
-	//while(true){
-	//	displayCenteredBigTextLine(2, "Color: %d", getCellValue());
-	//}
-
-
 	// =*=*=*=*=*=*=*=*= Startup =*=*=*=*=*=*=*=*=
 	state = STATE_STARTUP;
 
 	raisePen();
-	//startTask(homeThread);
+	startTask(homeThread);
 	nVolume = 4;
 
 	// Establish a Bluetooth connection
+	/*
 	displayCenteredTextLine(2, "Establishing BT");
 	displayCenteredTextLine(4, "Connection...");
 	setupBluetooth();
 	BT_Status status = establishConnection(-1);
 	displayCenteredTextLine(6, "%s", getStatusMessage(status));
 	if(status != BT_SUCCESS){
-		playSound(soundException);
-		wait1Msec(5000);
-		return;
-		} else {
-		playSound(soundFastUpwardTones);
-		wait1Msec(5000);
+	playSound(soundException);
+	wait1Msec(5000);
+	return;
 	}
-
-	bool isSolved = false;
-	Sudoku puzzle;
-
-	while(true){
-		status = receivePuzzle(puzzle, isSolved, 5000);
-
-		eraseDisplay();
-		if(status == BT_SUCCESS){
-			for(int line = 0; line < 9; line++){
-				displayTextLine(line, "|%d%d%d|%d%d%d|%d%d%d|", puzzle[line][0],
-				puzzle[line][1],
-				puzzle[line][2],
-				puzzle[line][3],
-				puzzle[line][4],
-				puzzle[line][5],
-				puzzle[line][6],
-				puzzle[line][7],
-				puzzle[line][8]);
-			}
-		}
-		else
-			displayTextLine(0, getStatusMessage(status));
-	}
+	else {
+	playSound(soundFastUpwardTones);
+	wait1Msec(5000);
+	}*/
 
 	// Initialize the PI controllers
-	initializeController(controllers[0], 0.5, 0.0000, MOTOR_ENCODER, motorA, motorA);
-	setInputRange(controllers[0], -32767, 32767, TICKS_PER_CM);
+	initializeController(controllers[0], 0.8, 0.00005, MOTOR_ENCODER, motorA, motorA);
+	setInputRange(controllers[0], -32767, 32767, 360.0/(11) * (40/8));	//11cm per rotation, 8:40 reduction
 	setOutputRange(controllers[0], -100, 100);
+	setTolerance(controllers[0], 2);
 
-	initializeController(controllers[1], 0.5, 0.0001, MOTOR_ENCODER, motorC, motorC);
-	setInputRange(controllers[1], -32767, 32767, TICKS_PER_CM);
+	initializeController(controllers[1], 0.9, 0.0001, MOTOR_ENCODER, motorB, motorB);
+	setInputRange(controllers[1], -32767, 32767, 360.0/2.555); // 2.555cm per rev
 	setOutputRange(controllers[1], -100, 100);
+	setTolerance(controllers[1], 1);
+
+	// Set the motors to coast mode
+	bFloatDuringInactiveMotorPWM = true;
 
 	// Wait until the homing thread has completed
 	while(state == STATE_HOMING);
@@ -111,15 +87,30 @@ task main()
 	controllers[0].isEnabled = true;
 	controllers[1].isEnabled = true;
 
-	//Sudoku puzzle;
+
 	Sudoku solved;
+	Sudoku puzzle;
 	bool puzzleIsSolved = false;
 
-	//TODO: Find the first cell. Center the color sensor in this cell
+	// Print 1-9, then 9-1
+	for(int col = 0; col < 9; col++){
+		moveToCell(0,col,true);
+		plotNumber(col+1);
+		wait1Msec(500);
+	}
+	for(int col = 0; col < 9; col++){
+		moveToCell(1,col,true);
+		plotNumber(8-col+1);
+		wait1Msec(500);
+	}
+
+	return;
+
+	findFirstCell();
 	readPuzzle(puzzle);
 
 	// Send the puzzle over bluetooth
-	status = sendPuzzle(puzzle, false);
+	BT_Status status = sendPuzzle(puzzle, false);
 	while(status != BT_SUCCESS){
 
 		// Everytime there is an error, output the error message and make a sad sound
@@ -137,7 +128,7 @@ task main()
 		// Everytime there is an error, output the error message and make a sad sound
 		displayBigTextLine(2, "Send file: %s",  getStatusMessage(status));
 		playSound(soundException);
-		status = receivePuzzle(puzzle, puzzleIsSolved, -1);
+		status = receivePuzzle(solved, puzzleIsSolved, -1);
 		eraseDisplay();
 	}
 
