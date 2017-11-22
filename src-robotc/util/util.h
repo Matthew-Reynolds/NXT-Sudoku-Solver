@@ -1,8 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "solver.h"
-#include "util/math.h"
+#include "../solver.h"
+#include "math.h"
 
 short decToBit(short dec);
 //short bitToDec(short bit);

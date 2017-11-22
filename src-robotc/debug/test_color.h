@@ -9,11 +9,11 @@ const tSensors colorSensor = S3;
 // This is a very irregular organization of code but is neccesary due to
 // the lack of a linker in RobotC
 #ifndef MATH_H
-#include "util/math.c"
+#include "../util/math.c"
 #endif
 
 #ifndef COLOR_H
-#include "util/color.c"
+#include "../util/color.c"
 #endif
 
 #endif
