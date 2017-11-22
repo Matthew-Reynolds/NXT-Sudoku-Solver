@@ -94,10 +94,14 @@ int getCellValue(){
 	displayTextLine(0, "%3d %3d %3d", rgb[0], rgb[1], rgb[2]);
 #endif
 
-	int cellNum = 0;
+	int cellNum = -1;
+
+	// White
+	if(isInRGBPercent(rgb, RGB_WHITE_THRESH))
+		cellNum = 0;
 
 	// Red
-	if(isInRGBPercent(rgb, RGB_RED_THRESH))
+	else if(isInRGBPercent(rgb, RGB_RED_THRESH, 3))
 		cellNum = 1;
 
 	// Green
@@ -117,7 +121,7 @@ int getCellValue(){
 		cellNum = 5;
 
 	// Pink
-	else if(isInRGBPercent(rgb, RGB_PINK_THRESH))
+	else if(isInRGBPercent(rgb, RGB_PINK_THRESH, 3))
 		cellNum = 6;
 
 	// Purple
@@ -125,11 +129,11 @@ int getCellValue(){
 		cellNum = 7;
 
 	// Brown
-	else if(isInRGBPercent(rgb, RGB_BROWN_THRESH))
+	else if(isInRGBPercent(rgb, RGB_BROWN_THRESH, 3))
 		cellNum = 8;
 
 	// Orange
-	else if(isInRGBPercent(rgb, RGB_ORANGE_THRESH))
+	else if(isInRGBPercent(rgb, RGB_ORANGE_THRESH, 3))
 		cellNum = 9;
 
 	return cellNum;

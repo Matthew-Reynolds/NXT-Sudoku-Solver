@@ -10,20 +10,21 @@ int getCellValue();
 
 
 // LOAD THE CONSTANTS FOR THE RGB THRESHOLDS
-//#define LOCATION_SJU
-#define LOCATION_WATIMAKE
+#define LOCATION_SJU
+//#define LOCATION_WATIMAKE
 //#define LOCATION_WEEF
 
 #ifdef LOCATION_SJU
-const short RGB_RED_THRESH[3] = 		{58, 22, 21};
-const short RGB_GREEN_THRESH[3] =		{29, 48, 23};
-const short RGB_DBLUE_THRESH[3] =		{24, 33, 43};
-const short RGB_YELLOW_THRESH[3] =	{44, 41, 15};
-const short RGB_LBLUE_THRESH[3] =		{22, 37, 40};
-const short RGB_PINK_THRESH[3] =		{49, 20, 31};
-const short RGB_PURPLE_THRESH[3] =	{29, 30, 41};
-const short RGB_BROWN_THRESH[3] =		{47, 30, 23};
-const short RGB_ORANGE_THRESH[3] =	{56, 28, 16};
+const short RGB_RED_THRESH[3] = 		{64, 18, 16};
+const short RGB_GREEN_THRESH[3] =		{27, 47, 25};
+const short RGB_DBLUE_THRESH[3] =		{24, 34, 43};
+const short RGB_YELLOW_THRESH[3] =	{44, 39, 16};
+const short RGB_LBLUE_THRESH[3] =		{21, 38, 39};
+const short RGB_PINK_THRESH[3] =		{58, 17, 24};
+const short RGB_PURPLE_THRESH[3] =	{28, 29, 41};
+const short RGB_BROWN_THRESH[3] =		{48, 29, 21};
+const short RGB_ORANGE_THRESH[3] =	{58, 24, 16};
+const short RGB_WHITE_THRESH[3] =		{33, 33, 33};
 
 #elif defined(LOCATION_WATIMAKE)
 const short RGB_RED_THRESH[3] = 		{64, 19, 17};
@@ -35,18 +36,20 @@ const short RGB_PINK_THRESH[3] =		{56, 17, 27};
 const short RGB_PURPLE_THRESH[3] =	{26, 29, 44};
 const short RGB_BROWN_THRESH[3] =		{47, 32, 20};
 const short RGB_ORANGE_THRESH[3] =	{63, 25, 13};
+const short RGB_WHITE_THRESH[3] =		{33, 33, 33};
 
 
 #elif defined(LOCATION_WEEF)
-const short RGB_RED_THRESH[3] = 		{58, 22, 21};
-const short RGB_GREEN_THRESH[3] =		{29, 48, 23};
-const short RGB_DBLUE_THRESH[3] =		{24, 33, 43};
-const short RGB_YELLOW_THRESH[3] =	{44, 41, 15};
-const short RGB_LBLUE_THRESH[3] =		{22, 37, 40};
-const short RGB_PINK_THRESH[3] =		{49, 20, 31};
-const short RGB_PURPLE_THRESH[3] =	{29, 30, 41};
+const short RGB_RED_THRESH[3] = 		{58, 20, 22};
+const short RGB_GREEN_THRESH[3] =		{27, 45, 28};
+const short RGB_DBLUE_THRESH[3] =		{24, 31, 44};
+const short RGB_YELLOW_THRESH[3] =	{45, 38, 18};
+const short RGB_LBLUE_THRESH[3] =		{22, 38, 40};
+const short RGB_PINK_THRESH[3] =		{54, 19, 27};
+const short RGB_PURPLE_THRESH[3] =	{31, 28, 41};
 const short RGB_BROWN_THRESH[3] =		{47, 30, 23};
-const short RGB_ORANGE_THRESH[3] =	{56, 28, 16};
+const short RGB_ORANGE_THRESH[3] =	{56, 26, 19};
+const short RGB_WHITE_THRESH[3] =		{34, 34, 31};
 
 #else
 const short RGB_RED_THRESH[3] = 		{0, 0, 0};
@@ -58,6 +61,7 @@ const short RGB_PINK_THRESH[3] =		{0, 0, 0};
 const short RGB_PURPLE_THRESH[3] =	{0, 0, 0};
 const short RGB_BROWN_THRESH[3] =		{0, 0, 0};
 const short RGB_ORANGE_THRESH[3] =	{0, 0, 0};
+const short RGB_WHITE_THRESH[3] =		{0, 0, 0};
 
 #endif
 
