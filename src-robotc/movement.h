@@ -12,7 +12,7 @@ void readRow(Sudoku & sudoku, int curLine);
 
 void printPuzzle(const Sudoku & unsolved, const Sudoku & solved);
 void printRow(const Sudoku & unsolved, const Sudoku & solved, int curLine);
-void plotNumber(int value, float segH = 0.75, float segW = 1, long delay = 500);
+void plotNumber(int value, long delay = 500, float segH = 0.75, float segW = 1);
 
 void homeAxis();
 void findFirstCell();
