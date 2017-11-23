@@ -1,5 +1,7 @@
 #include "main.h"
 
+RobotState state = STATE_DISABLED;
+
 Sudoku board1 =
 {2, 0, 0, 0, 4, 0, 0, 3, 8,
 	0, 3, 0, 0, 0, 2, 0, 1, 9,
@@ -11,7 +13,6 @@ Sudoku board1 =
 	1, 2, 0, 7, 0, 0, 0, 5, 0,
 	3, 8, 0, 0, 6, 0, 0, 0, 2};
 
-RobotState state = STATE_DISABLED;
 
 task homeThread(){
 	// Backup the current state, and set it to 'Homing'
@@ -88,16 +89,16 @@ task main()
 	}
 
 	// Initialize the PI controllers
-	initializeController(controllers[0], 0.8, 0.00005, MOTOR_ENCODER, yAxisMotor, yAxisMotor);
+	initializeController(controllers[0], 0.8, 0.00004, MOTOR_ENCODER, yAxisMotor, yAxisMotor);
 	setInputRange(controllers[0], -32767, 32767, 360.0/(12.2) * (40/8));	//11cm per rotation, 8:40 reduction
 	setOutputRange(controllers[0], -100, 100);
-	setTolerance(controllers[0], 3); // 3 degrees = 0.02cm
+	setTolerance(controllers[0], 5); // 5 degrees = 0.034cm
 
-//	initializeController(controllers[1], 0.9, 0.0005, MOTOR_ENCODER, motorB, motorB);
+	//	initializeController(controllers[1], 0.9, 0.0005, MOTOR_ENCODER, motorB, motorB);
 	initializeController(controllers[1], 0.7, 0.001, MOTOR_ENCODER, xAxisMotor, xAxisMotor);
 	setInputRange(controllers[1], -32767, 32767, 360.0/2.6); // 2.555cm per rev
 	setOutputRange(controllers[1], -100, 100);
-	setTolerance(controllers[1], 3); // 3 degrees = 0.02cm
+	setTolerance(controllers[1], 5); // 5 degrees = 0.036cm
 	//Old: 1
 
 	// Set the motors to coast mode
@@ -105,8 +106,6 @@ task main()
 
 	// Wait until the homing thread has completed
 	while(state == STATE_HOMING);
-
-
 
 	// =*=*=*=*=*=*=*=*= MAIN LOOP =*=*=*=*=*=*=*=*=
 	state = STATE_RUNNING;
@@ -120,21 +119,17 @@ task main()
 	Sudoku puzzle;
 	bool puzzleIsSolved = false;
 
-	readPuzzle(puzzle);
-	//printPuzzle(puzzle);
-	//wait1Msec(5000);
-
-	memcpy(puzzle, board1, sizeof(board1[0][0])*81);
+	//readPuzzle(puzzle);
 
 	eraseDisplay();
 	displayCenteredTextLine(0, "Sending puzzle:");
 	// Send the puzzle over bluetooth
-	status = sendPuzzle(puzzle, false);
+	status = sendPuzzle(board1, false);
 	while(status != BT_SUCCESS){
 
 		// Everytime there is an error, output the error message and make a sad sound
 		displayError(status);
-		status = sendPuzzle(puzzle, false);
+		status = sendPuzzle(board1, false);
 	}
 
 	playSound(soundFastUpwardTones);
@@ -159,7 +154,7 @@ task main()
 
 	// If the puzzle was solved, print it out.
 	if(puzzleIsSolved)
-		printPuzzle(puzzle, solved);
+		printPuzzle(board1, solved);
 
 	// Otherwise, make a sad noise and print out unsolveable
 	else {

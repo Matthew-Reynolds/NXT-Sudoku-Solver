@@ -1,37 +1,19 @@
 #include "movement.h"
 
-void displayPuzzle(const Sudoku & sudoku){
-	for(int i = 0; i < 9; i++){
-		displayCenteredTextLine(i, "|%d%d%d|%d%d%d|%d%d%d|",
-		sudoku[i][0],
-		sudoku[i][1],
-		sudoku[i][2],
-		sudoku[i][3],
-		sudoku[i][4],
-		sudoku[i][5],
-		sudoku[i][6],
-		sudoku[i][7],
-		sudoku[i][8]);
-	}
-}
-
 // Raise the pen off the paper
 void raisePen(){
-	long finalTime = time1[T1] + 1000;
+	long finalTime = time1[T1] + 300;
 
-	motor[zAxisMotor] = 40;
+	motor[zAxisMotor] = 100;
 	while(time1[T1] < finalTime);
-
-	motor[zAxisMotor] = 0;
 }
 
 // Lower the pen down to the paper
 void lowerPen(){
-	long finalTime = time1[T1] + 1000;
+	long finalTime = time1[T1] + 400;
 
-	motor[zAxisMotor] = -25;
+	motor[zAxisMotor] = -10;
 	while(time1[T1] < finalTime);
-
 	motor[zAxisMotor] = 0;
 }
 
@@ -56,7 +38,6 @@ void readRow(Sudoku & sudoku, int curLine){
 		// If this is not the last cell, move over 1 cell
 		for (int curColumn = 0; curColumn < 9; curColumn++){
 			moveToCell(curLine, curColumn, true);
-
 			int val = getCellValue();
 			while(val < 0){
 				if(curColumn != 8)
@@ -190,14 +171,17 @@ void moveToCell(int row, int col, bool isRead){
 	float cellHeight = 2;
 	float cellWidth = 2;
 
-	float xOffset = 120/controllers[1].scale;
-	float yOffset = 775/controllers[0].scale;
+	float xOffset = 1.25;
+	float yOffset = 5.5;
 
 	float x = (8-col)*cellWidth + xOffset;
 	float y = (8-row)*cellHeight + yOffset;
 
-	if(!isRead)
-		y -= 4.5; // Offset between the read and write head
+	if(!isRead){
+		y -= 4.7; // Offset between the read and write head
+		x -= 0.5;
+	}
+
 
 	// Set the setpoint to the new coords, and wait until we reach the cell
 	setSetpoint(controllers[0], y);
@@ -238,21 +222,33 @@ void plotNumber(int value, long delay, float segH, float segW){
 		moveToOffset(-segW, 0, delay);
 	}
 	else if(value == 3){
-		moveToOffset(segW/2, segH, delay);
+		moveToOffset(segW/2, 0, delay);
 		lowerPen();
 		moveToOffset(-segW, 0, delay);
-		moveToOffset(0, -segH, delay);
-		moveToOffset(segW, 0, delay);
+		raisePen();
+		moveToOffset(segW, segH, delay);
+		lowerPen();
 		moveToOffset(-segW, 0, delay);
-		moveToOffset(0, -segH, delay);
+		moveToOffset(0, -2*segH, delay);
 		moveToOffset(segW, 0, delay);
 	}
 	else if(value == 4){
-		moveToOffset(segW/2, segH, delay);
+		/*moveToOffset(segW/2, segH, delay);
 		lowerPen();
 		moveToOffset(0, -segH, delay);
 		moveToOffset(-segW, 0, delay);
+		raisePen();
 		moveToOffset(0, segH, delay);
+		lowerPen();
+		moveToOffset(0, -segH*2, delay);*/
+
+		moveToOffset(-segW/2, 0, delay);
+		lowerPen();
+		moveToOffset(segW, 0, delay);
+		moveToOffset(0, segH, delay);
+		raisePen();
+		moveToOffset(-segW, 0, delay);
+		lowerPen();
 		moveToOffset(0, -segH*2, delay);
 	}
 	else if(value == 5){
@@ -265,13 +261,13 @@ void plotNumber(int value, long delay, float segH, float segW){
 		moveToOffset(segW, 0, delay);
 	}
 	else if(value == 6){
-		moveToOffset(-segW/2, segH, delay);
+		moveToOffset(segW/2, 0, delay);
 		lowerPen();
-		moveToOffset(segW, 0, delay);
-		moveToOffset(0, -segH*2, delay);
 		moveToOffset(-segW, 0, delay);
-		moveToOffset(0, segH, delay);
+		moveToOffset(0, -segH, delay);
 		moveToOffset(segW, 0, delay);
+		moveToOffset(0, 2*segH, delay);
+		moveToOffset(-segW, 0, delay);
 	}
 	else if(value == 7){
 		moveToOffset(segW/2, segH, delay);
@@ -280,24 +276,25 @@ void plotNumber(int value, long delay, float segH, float segW){
 		moveToOffset(0, -segH*2, delay);
 	}
 	else if(value == 8){
-		moveToOffset(segW/2, -segH, delay);
+		moveToOffset(-segW/2, 0, delay);
+		lowerPen();
+		moveToOffset(segW, 0, delay);
+		raisePen();
+		moveToOffset(0, -segH, delay);
 		lowerPen();
 		moveToOffset(0, segH*2, delay);
 		moveToOffset(-segW, 0, delay);
 		moveToOffset(0, -segH*2, delay);
 		moveToOffset(segW, 0, delay);
-		moveToOffset(0, segH, delay);
-		moveToOffset(-segW, 0, delay);
 	}
 	else if(value == 9){
-		moveToOffset(segW/2, -segH, delay);
+		moveToOffset(-segW/2, 0, delay);
 		lowerPen();
-		moveToOffset(-segW, 0, delay);
-		moveToOffset(0, segH*2, delay);
 		moveToOffset(segW, 0, delay);
-		moveToOffset(0, -segH, delay);
+		moveToOffset(0, segH, delay);
 		moveToOffset(-segW, 0, delay);
+		moveToOffset(0, -2*segH, delay);
+		moveToOffset(segW, 0, delay);
 	}
-
 	raisePen();
 }
