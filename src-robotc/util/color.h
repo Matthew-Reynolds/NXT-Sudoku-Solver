@@ -11,9 +11,9 @@ int getCellValue();
 
 
 // LOAD THE CONSTANTS FOR THE RGB THRESHOLDS
-#define LOCATION_SJU
+//#define LOCATION_SJU
 //#define LOCATION_WATIMAKE
-//#define LOCATION_WEEF
+#define LOCATION_WEEF
 
 #ifdef LOCATION_SJU
 const short RGB_RED_THRESH[3] = 		{64, 18, 16};
@@ -41,16 +41,16 @@ const short RGB_WHITE_THRESH[3] =		{33, 33, 33};
 
 
 #elif defined(LOCATION_WEEF)
-const short RGB_RED_THRESH[3] = 		{58, 20, 22};
-const short RGB_GREEN_THRESH[3] =		{27, 45, 28};
-const short RGB_DBLUE_THRESH[3] =		{24, 31, 44};
-const short RGB_YELLOW_THRESH[3] =	{45, 38, 18};
-const short RGB_LBLUE_THRESH[3] =		{22, 38, 40};
-const short RGB_PINK_THRESH[3] =		{54, 19, 27};
-const short RGB_PURPLE_THRESH[3] =	{31, 28, 41};
-const short RGB_BROWN_THRESH[3] =		{47, 30, 23};
-const short RGB_ORANGE_THRESH[3] =	{56, 26, 19};
-const short RGB_WHITE_THRESH[3] =		{34, 34, 31};
+const short RGB_RED_THRESH[3] = 		{59, 21, 18};
+const short RGB_GREEN_THRESH[3] =		{28, 45, 26};
+const short RGB_DBLUE_THRESH[3] =		{25, 32, 43};
+const short RGB_YELLOW_THRESH[3] =	{44, 38, 17};
+const short RGB_LBLUE_THRESH[3] =		{22, 38, 39};
+const short RGB_PINK_THRESH[3] =		{54, 19, 26};
+const short RGB_PURPLE_THRESH[3] =	{41, 25, 32};
+const short RGB_BROWN_THRESH[3] =		{48, 30, 21};
+const short RGB_ORANGE_THRESH[3] =	{54, 27, 17};
+const short RGB_WHITE_THRESH[3] =		{33, 34, 31};
 
 #else
 const short RGB_RED_THRESH[3] = 		{0, 0, 0};

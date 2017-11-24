@@ -251,7 +251,7 @@ void moveToCell(int row, int col, bool isRead){
 
 	// Offset between the read and write head as required
 	if(!isRead){
-		y -= 4.75;
+		y -= 5.25;
 		x -= 0.5;
 	}
 
@@ -284,7 +284,6 @@ void moveToOffset(float x, float y, long delay){
 	setSetpoint(controllers[0], y);
 	setSetpoint(controllers[1], x);
 	while(!(onTarget(controllers[0]) && onTarget(controllers[1])));
-
 	wait1Msec(delay);
 }
 

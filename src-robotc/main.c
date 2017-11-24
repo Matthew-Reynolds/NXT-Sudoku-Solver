@@ -146,7 +146,7 @@ task main()
 	Sudoku puzzle;
 	bool puzzleIsSolved = false;
 
-	//readPuzzle(puzzle);
+	readPuzzle(board1);
 
 	// Send the puzzle over bluetooth
 	eraseDisplay();
