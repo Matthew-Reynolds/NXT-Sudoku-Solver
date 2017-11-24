@@ -31,7 +31,7 @@ const TMailboxIDs BTQueue_puzzleB = mailbox3;
 
 
 // Helper functions
-bool didTimeout(long timeout, long startTime);
+bool didTimeout(long timeout, long startTime, TTimers timer = T1);
 bool queueIsEmpty(TMailboxIDs queue);
 char * getStatusMessage(BT_Status status);
 

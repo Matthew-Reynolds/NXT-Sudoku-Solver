@@ -1,11 +1,27 @@
 #include "color.h"
 
 
+/**
+ *	Determine the RGB values of the color sensor over an
+ *	average of the specified number of readings taken at
+ *	the specified interval
+ *
+ *	param short * rgb
+ *			The array of shorts into which to store the rgb data
+ *			(Format: 0=red, 1=green, 2=blue, 3=ambient)
+ *
+ *	param int readings
+ *			The number of readings to take (Default: 5)
+ *
+ *	param long interval
+ *			The timeout between readings, in ms (Default: 10)
+ */
 void getAvgColor(short * rgb, int readings, long interval){
-	short history[3] = {0,0,0};
+	short history[4] = {0,0,0, 0};
 	long redTotal = 0;
 	long greenTotal = 0;
 	long blueTotal = 0;
+	long ambientTotal = 0;
 
 	for(int curReading = 0; curReading < readings; curReading ++){
 
@@ -15,18 +31,67 @@ void getAvgColor(short * rgb, int readings, long interval){
 		redTotal += history[0];
 		greenTotal += history[1];
 		blueTotal += history[2];
+		ambientTotal += history[3];
 	}
 
 	rgb[0] = redTotal/readings;
 	rgb[1] = greenTotal/readings;
 	rgb[2] = blueTotal/readings;
+	rgb[3] = ambientTotal/readings;
 }
 
 
+/**
+ *	Determine whether the specified color is approximately
+ *	equal to the specified values. Compare using relative
+ *	percentages of color rather than the raw RGB values
+ *	(eg. redVal = rgb[0] / (rgb[0]+rgb[1]+rgb[2])
+ *
+ *	param const short * rgb
+ *			The RGB value to be compared
+ *
+ *	param const short * percents
+ *			The RGB value to compare against, in percentages
+ *
+ *	param short thresh
+ *			The allowable deviation between the two values in order
+ *			for them to be considered equal, in percent (Default: 5)
+ *
+ *	return bool
+ *			Whether or not the specified color is equal to the
+ *			value
+ */
 bool isInRGBPercent(const short * rgb, const short * percents, short thresh){
 	return isInRGBPercent(rgb, percents[0], percents[1], percents[2], thresh);
 }
 
+
+/**
+ *	Determine whether the specified color is approximately
+ *	equal to the specified values. Compare using relative
+ *	percentages of color rather than the raw RGB values
+ *	(eg. redVal = rgb[0] / (rgb[0]+rgb[1]+rgb[2])
+ *
+ *	param const short * rgb
+ *			The RGB value to be compared
+ *
+ *	param short red
+ *			The red value to compare against, in percentage
+ *
+ *	param short green
+ *			The green value to compare against, in percentage
+ *
+ *	param short blue
+ *			The blue value to compare against, in percentage
+ *
+ *	param short thresh
+ *			The allowable deviation between the two values in order
+ *			for them to be considered equal, in percent (Default: 5)
+ *
+ *	return bool
+ *			Whether or not the specified color is equal to the
+ *			value
+ */
 bool isInRGBPercent(const short * rgb, short red, short green, short blue, short thresh){
 
 	// Handle divide by 0
@@ -59,6 +124,36 @@ bool isInRGBPercent(const short * rgb, short red, short green, short blue, short
 	return isInRange;
 }
 
+
+/**
+ *	Determine whether the specified color is approximately
+ *	equal to the specified values. Compare using raw RGB values
+ *
+ *	param const short * rgb
+ *			The RGB value to be compared
+ *
+ *	param short minR
+ *			The lower bound for the red value
+ *
+ *	param short minR
+ *			The upper bound for the red value
+ *
+ *	param short minG
+ *			The lower bound for the green value
+ *
+ *	param short minG
+ *			The upper bound for the green value
+ *
+ *	param short minB
+ *			The lower bound for the blue value
+ *
+ *	param short minB
+ *			The upper bound for the blue value
+ *
+ *	return bool
+ *			Whether or not the specified color is within the
+ *			specified bounds
+ */
 bool isInRGBRange(const short * rgb, short minR, short minG, short minB, short maxR, short maxG, short maxB){
 
 	short min[3] = {minR, minG, minB};
@@ -76,18 +171,25 @@ bool isInRGBRange(const short * rgb, short minR, short minG, short minB, short m
 #ifdef _DEBUG
 		displayTextLine(5, "%d < %d < %d", min[cur], rgb[cur], max[cur]);
 #endif
-
 	}
 
 	// Otherwise, return true
 	return isInRange;
 }
 
+
+/**
+ *	Determine the cell value below the color sensor by
+ *	comparing the background color of the cell to a known
+ *	color representing each value 0-9
+ *
+ *	return int
+ *			The read cell value, or -1 if no value was read
+ */
 int getCellValue(){
 
 	// Read the R,G,B,A values into an array
 	short rgb[4] = {0,0,0,0};
-	//getColorSensorData(colorSensor, colorRaw,    &rgb[0]);
 	getAvgColor(rgb);
 
 #ifdef _DEBUG
@@ -137,5 +239,4 @@ int getCellValue(){
 		cellNum = 9;
 
 	return cellNum;
-
 }

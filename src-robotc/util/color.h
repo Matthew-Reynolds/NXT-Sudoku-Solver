@@ -1,12 +1,13 @@
 #ifndef COLOR_H
 #define COLOR_H
 
+#include "main.h"
+
 void getAvgColor(short * rgb, int readings = 5, long interval = 10);
 bool isInRGBPercent(const short * rgb, const short * percents, short thresh = 5);
 bool isInRGBPercent(const short * rgb, short red, short green, short blue, short thresh = 5);
 bool isInRGBRange(const short * rgb, short minR, short minG, short minB, short maxR, short maxG, short maxB);
 int getCellValue();
-
 
 
 // LOAD THE CONSTANTS FOR THE RGB THRESHOLDS

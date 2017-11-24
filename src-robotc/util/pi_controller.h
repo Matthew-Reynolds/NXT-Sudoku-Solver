@@ -1,6 +1,8 @@
 #ifndef PI_CONTROLLER_H
 #define PI_CONTROLLER_H
 
+#include "util/math.h"
+
 enum InputType{
 	MOTOR_ENCODER,
 	ULTRASONIC,
@@ -33,23 +35,16 @@ void initializeController(PIController & controller, float newKP, float newKI, I
 
 void setTunings(PIController & controller, float newKP, float newKI);
 void setTolerance(PIController & controller, float newTol);
+void setReversed(PIController & controller, bool reverse);
 void setOutputRange(PIController & controller, float newMin, float newMax);
 void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor = 1);
-void setReversed(PIController & controller, bool reverse);
 void setSetpoint(PIController & controller, float newSetpoint);
 
+float getScaledInput(PIController & controller);
 float getInput(PIController & controller);
-float getOutput(PIController & c);
 bool onTarget(PIController & controller);
 
+float getOutput(PIController & c);
 void updateController(PIController & controller);
 
-
-const int NUM_CONTROLLERS = 2;
-PIController controllers[NUM_CONTROLLERS];
-
-#endif
-
-#ifndef MATH_H
-#include "math.c"
 #endif

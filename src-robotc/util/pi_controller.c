@@ -1,6 +1,9 @@
 #include "pi_controller.h"
 
-// Pls call me structs don't let us initialize their contents
+
+/**
+*	Initalize the specified PI controller with the given values
+*/
 void initializeController(PIController & controller, float newKP, float newKI, InputType type, int inPort, int outPort){
 
 	// Initialize all the specified vars to their specified values
@@ -24,21 +27,74 @@ void initializeController(PIController & controller, float newKP, float newKI, I
 	controller.isEnabled = false;
 }
 
-// Update P and I tunings
+
+/**
+*	Set the P and I coefficients for the specified controller
+*
+*	param PIController controller
+*			The controller to edit
+*
+*	param float newKP
+*			The new proportional coefficient to set
+*
+*	param float newI
+*			The new integral coefficient to set
+*/
 void setTunings(PIController & controller, float newKP, float newKI) {
 	controller.kP = abs(newKP);
 	controller.kI = abs(newKI);
 }
 
+
+/**
+*	Set the acceptable tolerance for the controller for it
+*	to be considered "On target"
+*
+*	param PIController controller
+*			The controller to edit
+*
+*	param float newTol
+*			The tolerance to set, in the raw sensor units! (Not scaled)
+*/
 void setTolerance(PIController & controller, float newTol) {
 	controller.tolerance = abs(newTol);
 }
 
-// Set the range of possible output values
+
+/**
+*	Set whether or not this controller should be reversed
+*
+*	param PIController controller
+*			The controller to edit
+*
+*	param bool reverse
+*			Whether or not to reverse the controller
+*/
+void setReversed(PIController & controller, bool reverse) {
+	controller.isReversed = reverse;
+}
+
+
+/**
+*	Set the range of allowable output values. If the
+*	minimum value exceeds the maximum, set the range
+*	to 0 to protect the output device (No output will
+*	be calculated by the controller until a legal
+*	range is set)
+*
+*	param PIController controller
+*			The controller to edit
+*
+*	param float newMin
+*			The minimum output value to set
+*
+*	param float newMax
+*			The maximum output value to set
+*/
 void setOutputRange(PIController & controller, float newMin, float newMax) {
 
 	// Check that the bounds are legal
-	if (newMin < newMax){
+	if (newMin <= newMax){
 		controller.minimumOutput = newMin;
 		controller.maximumOutput = newMax;
 	}
@@ -48,7 +104,26 @@ void setOutputRange(PIController & controller, float newMin, float newMax) {
 	}
 }
 
-// Set the range of the possible input values and the scaling factor
+/**
+*	Set the range of allowable input values, as well
+*	as the scaling factor to convert this raw value
+*	(eg voltage) into a useful unit (eg degrees, cm).
+*	If the minimum value exceeds or equals the maximum,
+*	set the range to default [-1,1].
+*
+*	param PIController controller
+*			The controller to edit
+*
+*	param float newMin
+*			The minimum input value to set
+*
+*	param float newMax
+*			The maximum input value to set
+*
+*	param float scalingFactor
+*			The scaling conversion between the raw sensor
+*			value and the useful units (Default: 1)
+*/
 void setInputRange(PIController & controller, float newMin, float newMax, float scalingFactor) {
 
 	// Check that the bounds are legal
@@ -59,12 +134,25 @@ void setInputRange(PIController & controller, float newMin, float newMax, float 
 		setSetpoint(controller, getInput(controller)/scalingFactor);
 	}
 	else {
-		controller.minimumInput = 0;
-		controller.maximumInput = 0;
+		controller.minimumInput = -1;
+		controller.maximumInput = 1;
 	}
 }
 
-// Set the setpoint of the controller
+
+/**
+*	Set the setpoint of the controller, in scaled
+*	units based off of the controller's scaling factor
+*	(eg cm rather than volts). If the setpoint exceeds
+*	the controller's max or min input value, set the
+*	setpoint to the greatest allowable limit.
+*
+*	param PIController controller
+*			The controller to edit
+*
+*	param float newSetpoint
+*			The setpoint to set
+*/
 void setSetpoint(PIController & controller, float newSetpoint) {
 	controller.integralTerm = 0;
 
@@ -107,12 +195,32 @@ void setSetpoint(PIController & controller, float newSetpoint) {
 	}
 }
 
-// Update the input value
+
+/**
+*	Update the controller's input value, and return
+*	the value in scaled units
+*
+*	param PIController controller
+*			The controller to update
+*
+*	return float
+*			The controller's input value, in scaled units
+*/
 float getScaledInput(PIController & controller){
 	return getInput(controller)/controller.scale;
 }
 
-// Update the input value
+
+/**
+*	Update the controller's input value from its
+*	specified sensor/input
+*
+*	param PIController controller
+*			The controller to update
+*
+*	return float
+*			The controller's input value
+*/
 float getInput(PIController & controller){
 	if(controller.inputType == MOTOR_ENCODER)
 		controller.inputVal = nMotorEncoder[controller.inputPort];
@@ -125,7 +233,46 @@ float getInput(PIController & controller){
 	return controller.inputVal;
 }
 
-// Calculate the output value
+
+/**
+*	Determine if the controller is on target
+*
+*	param PIController controller
+*			The controller to check
+*
+*	return bool
+*			Whether or not the controller is on target
+*/
+bool onTarget(PIController & controller) {
+	getInput(controller);
+
+	float err = abs(controller.setpoint - controller.inputVal);
+
+	// If the controller is cts, get the smallest err
+	//	if(controller.isContinuous && err > (maximumInput-minimumInput)/2)
+	//		err = maximumInput-err;
+
+	if(err <= controller.tolerance)
+		controller.onTargetCount++;
+	else
+		controller.onTargetCount = 0;
+
+
+	// If the setpoint is in the right spot
+	return controller.onTargetCount > 100;
+}
+
+
+/**
+*	Calculate the current effort that should be applied
+*	to the controller's plant (eg motor).
+*
+*	param PIController controller
+*			The controller to update
+*
+*	return float
+*			The calculated effort to apply to the plant
+*/
 float getOutput(PIController & c) {
 	getInput(c);
 
@@ -137,31 +284,29 @@ float getOutput(PIController & c) {
 	// Compute all the working error variables
 	float error = c.setpoint - c.inputVal;
 
-	// If the controller is cts
-	/*if (c.isContinuous) {
-		if (abs(error) > (c.maximumInput - c.minimumInput) / 2) {
-			if (error > 0) {
-				error = error - c.maximumInput + c.minimumInput;
-				} else {
-				error = error + c.maximumInput - c.minimumInput;
-			}
-		}
-	}*/
+	//	// If the controller is cts
+	//	if (c.isContinuous) {
+	//		if (abs(error) > (c.maximumInput - c.minimumInput) / 2) {
+	//			if (error > 0) {
+	//				error = error - c.maximumInput + c.minimumInput;
+	//				} else {
+	//				error = error + c.maximumInput - c.minimumInput;
+	//			}
+	//		}
+	//	}
 
 	// Only add to the integral term as we get close to the setpoint
 	if(c.kP * error < c.maximumOutput/6 && c.kP * error > c.minimumOutput/6)
 		c.integralTerm += c.kI * error * timeChange;
 
 
-	// Limit the integral, to prevent huge buildup after we exceed the
-	// maximum output
+	// Limit the integral, to prevent huge buildup
 	if (c.integralTerm > c.maximumOutput)
 		c.integralTerm = c.maximumOutput;
 	else if (c.integralTerm < c.minimumOutput)
 		c.integralTerm = c.minimumOutput;
 
-	// Compute the output, limiting it to the boundaries
-
+	// Compute the output, limiting it to the max/min output
 	float output = (c.kP * error) + c.integralTerm;
 	if (output > c.maximumOutput)
 		output = c.maximumOutput;
@@ -174,30 +319,14 @@ float getOutput(PIController & c) {
 	return output;
 }
 
-// Determine whether or not the motor has reached is at the setpoint
-bool onTarget(PIController & controller) {
-	getInput(controller);
 
-	if((abs(controller.setpoint - controller.inputVal) <= controller.tolerance))
-		controller.onTargetCount++;
-	else
-		controller.onTargetCount = 0;
-
-
-	//		if (m_isContinuous)
-	//			return (Math.abs(m_setpoint - m_inputVal) < m_tolerance / 100
-	//					* Math.abs(m_maximumInput - m_minimumInput));
-	// return Math.abs(m_setpoint - m_inputVal) < m_tolerance;
-
-	// If the setpoint is in the right spot
-	return controller.onTargetCount > 100;
-}
-
-// Update the motor's power
+/**
+*	Calculate the current effort to apply to the controller's
+*	output, and set the motor accordingly
+*
+*	param PIController controller
+*			The controller to update
+*/
 void updateController(PIController & controller){
 	motor[controller.outputPort] = getOutput(controller);
-}
-
-void setReversed(PIController & controller, bool reverse) {
-	controller.isReversed = reverse;
 }

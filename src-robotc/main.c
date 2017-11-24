@@ -13,7 +13,14 @@ Sudoku board1 =
 	1, 2, 0, 7, 0, 0, 0, 5, 0,
 	3, 8, 0, 0, 6, 0, 0, 0, 2};
 
-
+/**
+ *	Home the head of the robot.
+ *
+ *	Set the robot state to STATE_HOMING. Slowly drive the
+ *	two axis towards their endpoints until a limit switch
+ *	is hit. Then, set the robot state back to what it was
+ *	before the thread was called.
+ */
 task homeThread(){
 	// Backup the current state, and set it to 'Homing'
 	RobotState lastState = state;
@@ -25,7 +32,13 @@ task homeThread(){
 	state = lastState;
 }
 
-// Feed all the pid controllers
+
+/**
+ *	Feed all the PID controllers
+ *
+ *	While the robot is in operation (state is STATE_RUNNING),
+ *	feed all the PID controllers in the robot every ~5ms
+ */
 task pidUpdateThread(){
 
 	// Continue updating the pid controllers while the robot is in the running state
@@ -41,6 +54,20 @@ task pidUpdateThread(){
 	}
 }
 
+
+/**
+ *	Display Error
+ *
+ *	Output a verbose message for specified error to the
+ *	screen, accompanied by a sound effect. Countdown the
+ *	specified number of seconds before returning.
+ *
+ *	param BT_Status error
+ *			A BT_Status that describes which error to output
+ *
+ *	param int timeout
+ *			The number of seconds to wait (Default: 3)
+ */
 void displayError(BT_Status error, int timeout = 3){
 	displayCenteredTextLine(2, "Error:");
 	displayCenteredTextLine(3, getStatusMessage(error));
@@ -51,6 +78,10 @@ void displayError(BT_Status error, int timeout = 3){
 	}
 }
 
+
+/**
+ *	Main function
+ */
 task main()
 {
 	// Configure the sensors
@@ -59,6 +90,8 @@ task main()
 	SensorType[soundSensor] = sensorSoundDB;
 	SensorType[colorSensor] = sensorColorNxtFULL;
 
+	// Set the motors to coast mode
+	bFloatDuringInactiveMotorPWM = true;
 
 	// =*=*=*=*=*=*=*=*= Startup =*=*=*=*=*=*=*=*=
 	state = STATE_STARTUP;
@@ -68,7 +101,6 @@ task main()
 	nVolume = 4;
 
 	// Establish a Bluetooth connection
-
 	displayCenteredTextLine(0, "Establishing BT");
 	displayCenteredTextLine(1, "Connection...");
 	setupBluetooth();
@@ -77,7 +109,7 @@ task main()
 	if(status != BT_SUCCESS){
 		displayError(status, 0);
 		wait1Msec(5000);
-		return;
+		return; // TODO: Something about this
 	}
 	else {
 		playSound(soundFastUpwardTones);
@@ -90,24 +122,19 @@ task main()
 
 	// Initialize the PI controllers
 	initializeController(controllers[0], 0.8, 0.00004, MOTOR_ENCODER, yAxisMotor, yAxisMotor);
-	setInputRange(controllers[0], -32767, 32767, 360.0/(12.2) * (40/8));	//11cm per rotation, 8:40 reduction
+	setInputRange(controllers[0], -32767, 32767, 360.0/(12.2) * (40/8));	//11cm per rev, 8:40 reduction
 	setOutputRange(controllers[0], -100, 100);
 	setTolerance(controllers[0], 5); // 5 degrees = 0.034cm
 
-	//	initializeController(controllers[1], 0.9, 0.0005, MOTOR_ENCODER, motorB, motorB);
 	initializeController(controllers[1], 0.7, 0.001, MOTOR_ENCODER, xAxisMotor, xAxisMotor);
 	setInputRange(controllers[1], -32767, 32767, 360.0/2.6); // 2.555cm per rev
 	setOutputRange(controllers[1], -100, 100);
-	setTolerance(controllers[1], 5); // 5 degrees = 0.036cm
-	//Old: 1
-
-	// Set the motors to coast mode
-	bFloatDuringInactiveMotorPWM = true;
+	setTolerance(controllers[1], 5); // 5 degrees = 0.036cm]
 
 	// Wait until the homing thread has completed
 	while(state == STATE_HOMING);
 
-	// =*=*=*=*=*=*=*=*= MAIN LOOP =*=*=*=*=*=*=*=*=
+	// =*=*=*=*=*=*=*=*= MAIN BODY =*=*=*=*=*=*=*=*=
 	state = STATE_RUNNING;
 	setSetpoint(controllers[0], 0);
 	setSetpoint(controllers[1], 0);
@@ -121,9 +148,9 @@ task main()
 
 	//readPuzzle(puzzle);
 
+	// Send the puzzle over bluetooth
 	eraseDisplay();
 	displayCenteredTextLine(0, "Sending puzzle:");
-	// Send the puzzle over bluetooth
 	status = sendPuzzle(board1, false);
 	while(status != BT_SUCCESS){
 
@@ -132,6 +159,7 @@ task main()
 		status = sendPuzzle(board1, false);
 	}
 
+	// Confirm that we have sent the puzzle
 	playSound(soundFastUpwardTones);
 	eraseDisplay();
 	displayCenteredTextLine(0, "Sent puzzle");
@@ -147,6 +175,7 @@ task main()
 		status = receivePuzzle(solved, puzzleIsSolved, -1);
 	}
 
+	// Confirm the solution has been received
 	playSound(soundFastUpwardTones);
 	eraseDisplay();
 	displayCenteredTextLine(0, "Recieved soln");
@@ -170,7 +199,9 @@ task main()
 	homeAxis();	// Move the head off of the paper to see the result
 
 
-
 	// =*=*=*=*=*=*=*=*= DONE =*=*=*=*=*=*=*=*=
 	state = STATE_DISABLED;
 }
+
+// This is kinda messy at the bottom but the linker should only really operate at the end
+#include "linker.h"
