@@ -6,5 +6,10 @@ This system uses two NXT bricks to solve the puzzle. One brick operates a pen an
 
 Designed using the Lego Mindstorms NXT platform. Programmed in RobotC.
 
+# Debugging
+There are several files in this repo which are leftovers from the development and debugging phases of the project. This includes any file in the `src-cpp` directory or the `src-robotc/debug` directory, as well as the files `solver_noBT.c` and `.h`.
+
 # Authors:
 Matthew Reynolds, Dawson Hemphill, Andrew Drury
+
+Unless otherwise stated, all code was authored by Matthew Reynolds
