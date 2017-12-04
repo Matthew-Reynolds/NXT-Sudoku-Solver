@@ -15,9 +15,11 @@
  *
  *	param long interval
  *			The timeout between readings, in ms (Default: 10)
+ *
+ *	Author: Matthew Reynolds
  */
 void getAvgColor(short * rgb, int readings, long interval){
-	short history[4] = {0,0,0, 0};
+	short history[4] = {0,0,0,0};
 	long redTotal = 0;
 	long greenTotal = 0;
 	long blueTotal = 0;
@@ -34,10 +36,13 @@ void getAvgColor(short * rgb, int readings, long interval){
 		ambientTotal += history[3];
 	}
 
-	rgb[0] = redTotal/readings;
-	rgb[1] = greenTotal/readings;
-	rgb[2] = blueTotal/readings;
-	rgb[3] = ambientTotal/readings;
+	// Handle division by 0
+	if(readings > 0){
+		rgb[0] = redTotal/readings;
+		rgb[1] = greenTotal/readings;
+		rgb[2] = blueTotal/readings;
+		rgb[3] = ambientTotal/readings;
+	}
 }
 
 
@@ -60,6 +65,8 @@ void getAvgColor(short * rgb, int readings, long interval){
  *	return bool
  *			Whether or not the specified color is equal to the
  *			value
+ *
+ *	Author: Matthew Reynolds
  */
 bool isInRGBPercent(const short * rgb, const short * percents, short thresh){
 	return isInRGBPercent(rgb, percents[0], percents[1], percents[2], thresh);
@@ -91,6 +98,8 @@ bool isInRGBPercent(const short * rgb, const short * percents, short thresh){
  *	return bool
  *			Whether or not the specified color is equal to the
  *			value
+ *
+ *	Author: Matthew Reynolds
  */
 bool isInRGBPercent(const short * rgb, short red, short green, short blue, short thresh){
 
@@ -105,11 +114,9 @@ bool isInRGBPercent(const short * rgb, short red, short green, short blue, short
 	percent[1] = (float)(rgb[1])*100/(rgb[0]+rgb[1]+rgb[2]);
 	percent[2] = (float)(rgb[2])*100/(rgb[0]+rgb[1]+rgb[2]);
 
-
 #ifdef _DEBUG
 	displayTextLine(5, "%d %d %d", percent[0], percent[1], percent[2]);
 #endif
-
 
 	// Check if the read value is outside the range for each red, green, and blue
 	bool isInRange = true;
@@ -153,8 +160,11 @@ bool isInRGBPercent(const short * rgb, short red, short green, short blue, short
  *	return bool
  *			Whether or not the specified color is within the
  *			specified bounds
+ *
+ *	Author: Matthew Reynolds
  */
-bool isInRGBRange(const short * rgb, short minR, short minG, short minB, short maxR, short maxG, short maxB){
+bool isInRGBRange(const short * rgb, short minR, short minG, short minB,
+									short maxR, short maxG, short maxB){
 
 	short min[3] = {minR, minG, minB};
 	short max[3] = {maxR, maxG, maxB};
@@ -185,6 +195,8 @@ bool isInRGBRange(const short * rgb, short minR, short minG, short minB, short m
  *
  *	return int
  *			The read cell value, or -1 if no value was read
+ *
+ *	Author: Andrew Drury, Matthew Reynolds
  */
 int getCellValue(){
 

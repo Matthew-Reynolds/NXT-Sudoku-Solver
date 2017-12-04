@@ -6,7 +6,8 @@
 using namespace std;
 
 inline short decToBit(short dec){
-	return (short) pow(2, dec-1);	
+	return 1<<dec-1;
+	//return (short) pow(2, dec-1);	
 }
 
 inline short bitToDec(short bit){

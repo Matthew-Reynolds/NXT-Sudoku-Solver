@@ -18,6 +18,8 @@
  *
  *	return bool
  *			Whether of not the specified timeout has elapsed
+ *
+ *	Author: Matthew Reynolds
  */
 bool didTimeout(long timeout, long startTime, TTimers timer){
 
@@ -44,6 +46,8 @@ bool didTimeout(long timeout, long startTime, TTimers timer){
  *
  *	return bool
  *			Whether of not the specified queue is empty
+ *
+ *	Author: Matthew Reynolds
  */
 bool queueIsEmpty(TMailboxIDs queue){
 	return cCmdMessageGetSize(queue) < 1;
@@ -58,6 +62,8 @@ bool queueIsEmpty(TMailboxIDs queue){
  *
  *	return char *
  *			The user-friendly error mesage
+ *
+ *	Author: Matthew Reynolds
  */
 char * getStatusMessage(BT_Status status){
 	char * errorMessage = "";
@@ -91,6 +97,8 @@ char * getStatusMessage(BT_Status status){
 /**
  *	Initialize the Bluetooth system on the brick. Set
  *	the brick's name and visibility, and turn on BT
+ *
+ *	Author: Dawson Hemphill
  */
 void setupBluetooth(){
 
@@ -115,16 +123,19 @@ void setupBluetooth(){
  *	return BT_Status
  *			BT_TIMEOUT if the timeout was exceeded before the
  *			connection was established, otherwise BT_SUCCESS
+ *
+ *	Author: Dawson Hemphill
  */
 BT_Status establishConnection(long timeout){
 	long startTime = time1[T1];
 
-	// *** DON'T SEARCH FOR DEVICES. PAIR THE DEVICES AHEAD OF TIME. Programatically searching is messy and unnecessary given our application ***
+	// *** DON'T SEARCH FOR DEVICES. PAIR THE DEVICES AHEAD OF TIME.
+	// Programatically searching is messy and unnecessary given our application ***
 	// Search for nearby devices.
 	//btSearch();
 	//while(!(TBtDeviceStatus & btDeviceStatusNameLookedUp &&	// Wait until we find a device AND
-	//				TBtDeviceStatus & btDeviceStatusAWAY) ||					// The saved device we want is found OR
-	//			  !didTimeout(timeout, startTime));										// We timed out
+	//				TBtDeviceStatus & btDeviceStatusAWAY) ||				// The saved device we want is found OR
+	//			  !didTimeout(timeout, startTime));								// We timed out
 	//btStopSearch();
 
 	// Connect to the other brick on port 1
@@ -155,6 +166,8 @@ BT_Status establishConnection(long timeout){
  *			BT_SUCCESS on successful transfer.
  *			BT_ERROR_NO_CONNECTION if there is no paired brick.
  *			Otherwise, BT_ERROR_WRITE_FAILURE
+ *
+ *	Author: Dawson Hemphill
  */
 BT_Status sendPuzzle(const Sudoku & sudoku, bool isSolved){
 
@@ -243,6 +256,8 @@ BT_Status sendPuzzle(const Sudoku & sudoku, bool isSolved){
  *			BT_SUCCESS on successful transfer. BT_TIMEOUT on
  *			timeout. BT_ERROR_NO_CONNECTION if there is no
  *			paired brick. Otherwise, BT_ERROR_READ_FAILURE.
+ *
+ *	Author: Dawson Hemphill
  */
 BT_Status receivePuzzle(Sudoku & sudoku, bool & isSolved, long timeout){
 	long startTime = time1[T1];
@@ -256,7 +271,8 @@ BT_Status receivePuzzle(Sudoku & sudoku, bool & isSolved, long timeout){
 
 	if(returnStatus == BT_SUCCESS){
 		// Wait until we recieve a full message, or we timeout
-		while((queueIsEmpty(BTQueue_metadata) || queueIsEmpty(BTQueue_puzzleA) || queueIsEmpty(BTQueue_puzzleB)) && !didTimeout(timeout, startTime));
+		while((queueIsEmpty(BTQueue_metadata) || queueIsEmpty(BTQueue_puzzleA) ||
+						queueIsEmpty(BTQueue_puzzleB)) && !didTimeout(timeout, startTime));
 		if(didTimeout(timeout, startTime))
 			returnStatus = BT_TIMEOUT;
 	}

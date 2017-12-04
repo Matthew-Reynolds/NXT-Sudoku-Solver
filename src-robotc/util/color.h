@@ -6,7 +6,8 @@
 void getAvgColor(short * rgb, int readings = 5, long interval = 10);
 bool isInRGBPercent(const short * rgb, const short * percents, short thresh = 5);
 bool isInRGBPercent(const short * rgb, short red, short green, short blue, short thresh = 5);
-bool isInRGBRange(const short * rgb, short minR, short minG, short minB, short maxR, short maxG, short maxB);
+bool isInRGBRange(const short * rgb, short minR, short minG, short minB,
+										short maxR, short maxG, short maxB);
 int getCellValue();
 
 
@@ -43,7 +44,7 @@ const short RGB_WHITE_THRESH[3] =		{33, 33, 33};
 #elif defined(LOCATION_WEEF)
 const short RGB_RED_THRESH[3] = 		{59, 21, 18};
 const short RGB_GREEN_THRESH[3] =		{28, 45, 26};
-const short RGB_DBLUE_THRESH[3] =		{25, 32, 43};
+const short RGB_DBLUE_THRESH[3] =		{24, 32, 43};
 const short RGB_YELLOW_THRESH[3] =	{44, 38, 17};
 const short RGB_LBLUE_THRESH[3] =		{22, 38, 39};
 const short RGB_PINK_THRESH[3] =		{54, 19, 26};

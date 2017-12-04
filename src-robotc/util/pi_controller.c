@@ -1,10 +1,14 @@
 #include "pi_controller.h"
+/**
+ *	All functions, Author: Matthew Reynolds
+ */
 
 
 /**
 *	Initalize the specified PI controller with the given values
 */
-void initializeController(PIController & controller, float newKP, float newKI, InputType type, int inPort, int outPort){
+void initializeController(PIController & controller, float newKP, float newKI,
+													InputType type, int inPort, int outPort){
 
 	// Initialize all the specified vars to their specified values
 	setTunings(controller, newKP, newKI);

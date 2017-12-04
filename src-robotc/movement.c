@@ -7,6 +7,8 @@
 *
 *	return int
 *			The delay value, from 0-500
+*
+*	Author: Matthew Reynolds
 */
 int getDelay(){
 	long sound = SensorValue[soundSensor]; // 0-100
@@ -17,6 +19,8 @@ int getDelay(){
 /**
 *	Raise the pen off the paper.
 *	Note this function blocks until the procedure is complete.
+*
+*	Author: Matthew Reynolds
 */
 void raisePen(){
 	long finalTime = time1[T1] + 300;
@@ -29,6 +33,8 @@ void raisePen(){
 /**
 *	Lower the pen to the paper.
 *	Note this function blocks until the procedure is complete.
+*
+*	Author: Matthew Reynolds
 */
 void lowerPen(){
 	long finalTime = time1[T1] + 400;
@@ -45,6 +51,8 @@ void lowerPen(){
 *
 *	param Sudoku & sudoku
 *			The puzzle to populate with data from the page
+*
+*	Author: Andrew Drury
 */
 void readPuzzle(Sudoku & sudoku){
 
@@ -64,6 +72,8 @@ void readPuzzle(Sudoku & sudoku){
 *
 *	param int curLine
 *			The line of the puzzle to read
+*
+*	Author: Andrew Drury
 */
 void readRow(Sudoku & sudoku, int curLine){
 
@@ -130,6 +140,8 @@ void readRow(Sudoku & sudoku, int curLine){
 *
 *	param const Sudoku & solved
 *			The solved puzzle to print out
+*
+*	Author: Andrew Drury
 */
 void printPuzzle(const Sudoku & unsolved, const Sudoku & solved){
 
@@ -151,6 +163,8 @@ void printPuzzle(const Sudoku & unsolved, const Sudoku & solved){
 *
 *	param int curLine
 *			The line of the puzzle to print
+*
+*	Author: Andrew Drury
 */
 void printRow(const Sudoku & unsolved, const Sudoku & solved, int curLine){
 
@@ -180,6 +194,8 @@ void printRow(const Sudoku & unsolved, const Sudoku & solved, int curLine){
 *
 *	Slowly drive the two axis towards their endpoints until
 *	a limit switch is hit. Then set the encoders to 0
+*
+*	Author: Matthew Reynolds
 */
 void homeAxis(){
 
@@ -230,6 +246,8 @@ void homeAxis(){
 *
 *	param bool isRead
 *			Whether to center the read head or not
+*
+*	Author: Matthew Reynolds
 */
 void moveToCell(int row, int col, bool isRead){
 
@@ -237,22 +255,14 @@ void moveToCell(int row, int col, bool isRead){
 	if(row > 8 || row < 0 || col > 8 || col < 0)
 		return;
 
-	// Size of the cells (cm)
-	float cellHeight = 2;
-	float cellWidth = 2;
-
-	// Offset from the 'home' to cell (8,8) (cm)
-	float xOffset = 1.25;
-	float yOffset = 5.75;
-
 	// Calculate the position to move to, in cm
-	float x = (8-col)*cellWidth + xOffset;
-	float y = (8-row)*cellHeight + yOffset;
+	float x = (8-col)*CELL_SIZE + X_ORIGIN_OFFSET;
+	float y = (8-row)*CELL_SIZE + Y_ORIGIN_OFFSET;
 
 	// Offset between the read and write head as required
 	if(!isRead){
-		y -= 5.25;
-		x -= 0.5;
+		y += Y_WRITE_OFFSET;
+		x += X_WRITE_OFFSET;
 	}
 
 	// Set the setpoint to the new coords, and wait until we reach the cell
@@ -276,6 +286,8 @@ void moveToCell(int row, int col, bool isRead){
 *	param long delat
 *			How long to delay after the movement (ms)
 *			(Default: 100)
+*
+*	Author: Matthew Reynolds
 */
 void moveToOffset(float x, float y, long delay){
 	y += getScaledInput(controllers[0]);
@@ -302,6 +314,8 @@ void moveToOffset(float x, float y, long delay){
 *	param float segW
 *			The width of each segment of the number, in cm
 *			(Default: 1.0)
+*
+*	Author: Matthew Reynolds, Dawson Hemphill
 */
 void plotNumber(int value, float segH, float segW){
 
@@ -331,15 +345,6 @@ void plotNumber(int value, float segH, float segW){
 		moveToOffset(segW, 0, getDelay());
 	}
 	else if(value == 4){
-		/*moveToOffset(segW/2, segH, getDelay());
-		lowerPen();
-		moveToOffset(0, -segH, getDelay());
-		moveToOffset(-segW, 0, getDelay());
-		raisePen();
-		moveToOffset(0, segH, getDelay());
-		lowerPen();
-		moveToOffset(0, -segH*2, getDelay());*/
-
 		moveToOffset(-segW/2, 0, getDelay());
 		lowerPen();
 		moveToOffset(segW, 0, getDelay());

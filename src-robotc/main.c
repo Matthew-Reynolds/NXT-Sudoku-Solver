@@ -2,24 +2,14 @@
 
 RobotState state = STATE_DISABLED;
 
-Sudoku board1 =
-{2, 0, 0, 0, 4, 0, 0, 3, 8,
-	0, 3, 0, 0, 0, 2, 0, 1, 9,
-	0, 9, 8, 3, 0, 1, 6, 2, 0,
-	0, 0, 3, 2, 0, 0, 1, 0, 0,
-	0, 5, 0, 0, 0, 0, 0, 6, 0,
-	0, 0, 6, 0, 0, 7, 2, 0, 0,
-	0, 7, 5, 4, 0, 3, 9, 8, 0,
-	1, 2, 0, 7, 0, 0, 0, 5, 0,
-	3, 8, 0, 0, 6, 0, 0, 0, 2};
-
 /**
  *	Home the head of the robot.
- *
  *	Set the robot state to STATE_HOMING. Slowly drive the
  *	two axis towards their endpoints until a limit switch
  *	is hit. Then, set the robot state back to what it was
  *	before the thread was called.
+ *
+ *	Author: Matthew Reynolds
  */
 task homeThread(){
 	// Backup the current state, and set it to 'Homing'
@@ -34,10 +24,10 @@ task homeThread(){
 
 
 /**
- *	Feed all the PID controllers
- *
  *	While the robot is in operation (state is STATE_RUNNING),
  *	feed all the PID controllers in the robot every ~5ms
+ *
+ *	Author: Matthew Reynolds
  */
 task pidUpdateThread(){
 
@@ -56,8 +46,6 @@ task pidUpdateThread(){
 
 
 /**
- *	Display Error
- *
  *	Output a verbose message for specified error to the
  *	screen, accompanied by a sound effect. Countdown the
  *	specified number of seconds before returning.
@@ -67,20 +55,46 @@ task pidUpdateThread(){
  *
  *	param int timeout
  *			The number of seconds to wait (Default: 3)
+ *
+ *	Author: Matthew Reynolds
  */
 void displayError(BT_Status error, int timeout = 3){
 	displayCenteredTextLine(2, "Error:");
 	displayCenteredTextLine(3, getStatusMessage(error));
 	playSound(soundException);
-	for(;timeout > 0; timeout--){
+	while(timeout > 0){
 		displayCenteredTextLine(4, "Retrying in %d...", timeout);
 		wait1Msec(1000);
+		timeout--;
 	}
 }
 
+/**
+ *	Output the specified Sudoku to the screen.
+ *	Note that only the first 8 lines will be
+ *	displayed due to the screen size of the NXT.
+ *
+ *	Author: Matthew Reynolds
+ */
+void displayPuzzle(const Sudoku & sudoku){
+	for(int i = 0; i < 9; i++){
+		displayCenteredTextLine(i, "|%d%d%d|%d%d%d|%d%d%d|",
+		sudoku[i][0],
+		sudoku[i][1],
+		sudoku[i][2],
+		sudoku[i][3],
+		sudoku[i][4],
+		sudoku[i][5],
+		sudoku[i][6],
+		sudoku[i][7],
+		sudoku[i][8]);
+	}
+}
 
 /**
  *	Main function
+ *
+ *	Author: Matthew Reynolds
  */
 task main()
 {
@@ -109,7 +123,7 @@ task main()
 	if(status != BT_SUCCESS){
 		displayError(status, 0);
 		wait1Msec(5000);
-		return; // TODO: Something about this
+		stopAllTasks();
 	}
 	else {
 		playSound(soundFastUpwardTones);
@@ -122,14 +136,15 @@ task main()
 
 	// Initialize the PI controllers
 	initializeController(controllers[0], 0.8, 0.00004, MOTOR_ENCODER, yAxisMotor, yAxisMotor);
-	setInputRange(controllers[0], -32767, 32767, 360.0/(12.2) * (40/8));	//11cm per rev, 8:40 reduction
+	//11cm per rev, 8:40 reduction
+	setInputRange(controllers[0], -32767, 32767, 360.0/(12.2) * (40/8));
 	setOutputRange(controllers[0], -100, 100);
 	setTolerance(controllers[0], 5); // 5 degrees = 0.034cm
 
 	initializeController(controllers[1], 0.7, 0.001, MOTOR_ENCODER, xAxisMotor, xAxisMotor);
 	setInputRange(controllers[1], -32767, 32767, 360.0/2.6); // 2.555cm per rev
 	setOutputRange(controllers[1], -100, 100);
-	setTolerance(controllers[1], 5); // 5 degrees = 0.036cm]
+	setTolerance(controllers[1], 5); // 5 degrees = 0.036cm
 
 	// Wait until the homing thread has completed
 	while(state == STATE_HOMING);
@@ -145,18 +160,22 @@ task main()
 	Sudoku solved;
 	Sudoku puzzle;
 	bool puzzleIsSolved = false;
+	readPuzzle(puzzle);
 
-	readPuzzle(board1);
+	// To demonstrate that the robot can store the puzzle
+	displayPuzzle(puzzle);
+	wait1Msec(3000);
+	eraseDisplay();
 
-	// Send the puzzle over bluetooth
+	// Send the puzzle over Bluetooth
 	eraseDisplay();
 	displayCenteredTextLine(0, "Sending puzzle:");
-	status = sendPuzzle(board1, false);
+	status = sendPuzzle(puzzle, false);
 	while(status != BT_SUCCESS){
 
-		// Everytime there is an error, output the error message and make a sad sound
+		// Every time there is an error, output the error message and make a sad sound
 		displayError(status);
-		status = sendPuzzle(board1, false);
+		status = sendPuzzle(puzzle, false);
 	}
 
 	// Confirm that we have sent the puzzle
@@ -166,11 +185,11 @@ task main()
 	displayCenteredTextLine(1, "Waiting for soln");
 	wait1Msec(1000);
 
-	// Recieve the puzzle from bluetooth
+	// Receive the puzzle from Bluetooth
 	status = receivePuzzle(solved, puzzleIsSolved, -1);
 	while(status != BT_SUCCESS){
 
-		// Everytime there is an error, output the error message and make a sad sound
+		// Every time there is an error, output the error message and make a sad sound
 		displayError(status);
 		status = receivePuzzle(solved, puzzleIsSolved, -1);
 	}
@@ -181,11 +200,16 @@ task main()
 	displayCenteredTextLine(0, "Recieved soln");
 	wait1Msec(1000);
 
+		// To demonstrate that the robot can solve and receive the puzzle
+	displayPuzzle(solved);
+	wait1Msec(3000);
+	eraseDisplay();
+
 	// If the puzzle was solved, print it out.
 	if(puzzleIsSolved)
-		printPuzzle(board1, solved);
+		printPuzzle(puzzle, solved);
 
-	// Otherwise, make a sad noise and print out unsolveable
+	// Otherwise, make a sad noise and print out unsolvable
 	else {
 		displayCenteredTextLine(0, "Unable to solve");
 		displayCenteredTextLine(1, "puzzle :(");
