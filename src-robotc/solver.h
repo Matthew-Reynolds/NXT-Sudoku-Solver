@@ -11,13 +11,9 @@ typedef short Sudoku[9][9];
 
 // As this program is somewhat simpler than main.c,
 // the 'linker' has been simplified as well.
-#ifndef UTIL_H
 #include "util/util.c"
-#endif
-
-#ifndef BLUETOOTH_H
 #include "bluetooth.c"
-#endif
+#include "util/math.c"
 
 short getBoxNumber(short row, short col);
 short getBoxEntryCol(short box, short entry);

@@ -1,5 +1,20 @@
 #include "solver_noBT.h"
 
+/**
+ *	This program is a fork of a previous version of the
+ *	solver.c program, before it had its Bluetooth functionality
+ *	implemented. It was used to test and optimize the solving
+ *	equation before bringing the changes made here into the
+ *	final solver.c file.
+ *
+ *	If this were to be redone, I should have moved all of these
+ *	algorithm functions to a separate file so that each program
+ *	might use the same code rather than duplicating code in multiple
+ *	files. Oh well.
+ *
+ *	Author: Matthew Reynolds
+ */
+
 // Easy
 Sudoku board1 =
 {2, 0, 0, 0, 4, 0, 0, 3, 8,
@@ -357,9 +372,8 @@ bool sudokuSolver(Sudoku & sudoku){
 task main()
 {
 	Sudoku sudoku;
-	setupBluetooth();
 
-	while(true){
+	while(nNxtButtonPressed != 0){
 
 		// Wait until a button is pressed
 		while(nNxtButtonPressed == -1);

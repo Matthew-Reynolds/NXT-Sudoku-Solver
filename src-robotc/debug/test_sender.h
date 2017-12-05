@@ -3,14 +3,10 @@
 
 #define BRICK_PRIMARY
 
-typedef short Sudoku[9][9];
+//typedef short Sudoku[9][9];
 
-#ifndef UTIL_H
 #include "../util/util.c"
-#endif
-
-#ifndef BLUETOOTH_H
 #include "../bluetooth.c"
-#endif
+#include "../util/math.c"
 
 #endif

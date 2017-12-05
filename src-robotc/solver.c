@@ -1,6 +1,10 @@
 #include "solver.h"
 /**
  *	All functions, Author: Matthew Reynolds
+ *
+ *	The level of commenting in this file falls
+ *	short of the other files in the project
+ *	simply due to time constraints. My apologies.
  */
 
 short getBoxNumber(short row, short col){
